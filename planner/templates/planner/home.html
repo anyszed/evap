@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Planner - Evap</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              rose: '#F472B6',  // rose principal
+              darkrose: '#EC4899', // pour hover
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+              serif: ['Merriweather', 'serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body class="font-sans bg-rose-100 min-h-screen flex">
+
+<!-- SIDEBAR -->
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">Evap</a>
+    <nav class="flex flex-col gap-3 relative">
+        <div id="active-indicator" class="absolute left-0 w-1 bg-white rounded-l transition-all duration-300" style="top:0; height:0;"></div>
+        {% for item in menu_items %}
+            <a href="{{ item.path }}" class="menu-item relative px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="{{ item.path }}">
+                {{ item.name }}
+            </a>
+        {% endfor %}
+    </nav>
+</aside>
+
+<main class="flex-1 p-8">
+    <!-- LISTE DES PROJETS -->
+    <div class="bg-white shadow rounded p-4 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-serif text-rose">Projets</h2>
+            <button onclick="openModal('projectModal')" class="bg-rose text-white px-4 py-2 rounded hover:bg-darkrose">+ Ajouter un projet</button>
+        </div>
+        <table class="w-full text-center">
+            <thead>
+                <tr class="border-b">
+                    <th>Nom</th>
+                    <th>Date</th>
+                    <th>Clôturer</th>
+                    <th>Supprimer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr onclick="openProjectDetails({{ project.id }})" class="border-b hover:bg-gray-50 cursor-pointer">
+                    <td>{{ project.name }}</td>
+                    <td>{{ project.due_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'" title="Clôturer projet">✅</button>
+                    </td>
+                    <td>
+                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'" title="Supprimer projet">🗑️</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- LISTE DES TÂCHES (SOUS LES PROJETS) -->
+    <div class="bg-white shadow rounded p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-serif text-rose">Tâches</h2>
+            <button onclick="openModal('taskModal')" class="bg-rose text-white px-4 py-2 rounded hover:bg-darkrose">+ Ajouter une tâche</button>
+        </div>
+        <table class="w-full text-center">
+            <thead>
+                <tr class="border-b">
+                    <th>Nom</th>
+                    <th>Projet</th>
+                    <th>Priorité</th>
+                    <th>Date</th>
+                    <th>Clôturer</th>
+                    <th>Supprimer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr onclick="openTaskDetails({{ task.id }})" class="border-b hover:bg-gray-50 cursor-pointer">
+                    <td>{{ task.title }}</td>
+                    <td>{% if task.project %}{{ task.project.name }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if task.priority == 3 %}
+                            🔴 Haute
+                        {% elif task.priority == 2 %}
+                            🟡 Moyenne
+                        {% else %}
+                            🟢 Basse
+                        {% endif %}
+                    </td>
+                    <td>{{ task.due_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'" title="Clôturer tâche">✅</button>
+                    </td>
+                    <td>
+                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'" title="Supprimer tâche">🗑️</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- MODALS -->
+{% include "planner/modals/project_modal.html" %}
+{% include "planner/modals/task_modal.html" %}
+
+<!-- DRAWERS pour détails -->
+<div id="taskDrawer" class="fixed top-0 right-0 w-80 h-full bg-white shadow transform translate-x-full transition-transform p-4 overflow-y-auto">
+    <h2 class="text-lg font-bold mb-2">Détails tâche</h2>
+    <label>Nom</label>
+    <input id="taskTitle" type="text" class="w-full mb-2 p-2 border rounded" disabled>
+    <label>Date</label>
+    <input id="taskDueDate" type="date" class="w-full mb-2 p-2 border rounded">
+    <button onclick="saveTaskDate()" class="bg-rose text-white px-4 py-2 rounded">Enregistrer</button>
+    <button onclick="closeTaskDrawer()" class="ml-2 px-4 py-2 border rounded">Fermer</button>
+</div>
+
+<div id="projectDrawer" class="fixed top-0 right-0 w-80 h-full bg-white shadow transform translate-x-full transition-transform p-4 overflow-y-auto">
+    <h2 class="text-lg font-bold mb-2">Détails projet</h2>
+    <label>Nom</label>
+    <input id="projectName" type="text" class="w-full mb-2 p-2 border rounded" disabled>
+    <label>Date</label>
+    <input id="projectDueDate" type="date" class="w-full mb-2 p-2 border rounded">
+    <button onclick="saveProjectDate()" class="bg-rose text-white px-4 py-2 rounded">Enregistrer</button>
+    <button onclick="closeProjectDrawer()" class="ml-2 px-4 py-2 border rounded">Fermer</button>
+</div>
+
+<script>
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+function openTaskDetails(taskId){
+    fetch(`/planner/api/task/${taskId}/`).then(r=>r.json()).then(data=>{
+        document.getElementById('taskTitle').value = data.title;
+        document.getElementById('taskDueDate').value = data.due_date;
+        document.getElementById('taskDrawer').dataset.taskId = taskId;
+        document.getElementById('taskDrawer').classList.remove('translate-x-full');
+    });
+}
+function closeTaskDrawer(){ document.getElementById('taskDrawer').classList.add('translate-x-full'); }
+function saveTaskDate(){
+    const taskId = document.getElementById('taskDrawer').dataset.taskId;
+    const newDate = document.getElementById('taskDueDate').value;
+    fetch(`/planner/update_task_date/${taskId}/`, {
+        method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":"{{ csrf_token }}"},
+        body: JSON.stringify({due_date:newDate})
+    }).then(()=>closeTaskDrawer()).then(()=>location.reload());
+}
+
+function openProjectDetails(projectId){
+    fetch(`/planner/api/project/${projectId}/`).then(r=>r.json()).then(data=>{
+        document.getElementById('projectName').value = data.name;
+        document.getElementById('projectDueDate').value = data.due_date;
+        document.getElementById('projectDrawer').dataset.projectId = projectId;
+        document.getElementById('projectDrawer').classList.remove('translate-x-full');
+    });
+}
+function closeProjectDrawer(){ document.getElementById('projectDrawer').classList.add('translate-x-full'); }
+function saveProjectDate(){
+    const projectId = document.getElementById('projectDrawer').dataset.projectId;
+    const newDate = document.getElementById('projectDueDate').value;
+    fetch(`/planner/update_project_date/${projectId}/`, {
+        method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":"{{ csrf_token }}"},
+        body: JSON.stringify({due_date:newDate})
+    }).then(()=>closeProjectDrawer()).then(()=>location.reload());
+}
+
+// Sidebar active indicator
+function moveActiveIndicator(){
+    const items=document.querySelectorAll('.menu-item');
+    const indicator=document.getElementById('active-indicator');
+    const path=window.location.pathname;
+    items.forEach(item=>{ if(item.dataset.path===path){indicator.style.top=item.offsetTop+'px';indicator.style.height=item.offsetHeight+'px';} });
+}
+window.addEventListener('load',moveActiveIndicator);
+window.addEventListener('resize',moveActiveIndicator);
+</script>
+
+</body>
+</html>

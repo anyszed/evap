@@ -1,0 +1,26 @@
+<div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded shadow w-96">
+    <h2 class="text-lg font-bold mb-4">Nouvelle tâche</h2>
+    <form method="POST" action="{% url 'planner:create_task' %}">
+      {% csrf_token %}
+      <input type="text" name="title" placeholder="Nom de la tâche" class="w-full mb-2 p-2 border rounded" required>
+      <textarea name="description" placeholder="Description de la tâche" class="w-full mb-2 p-2 border rounded"></textarea>
+      <select name="priority" class="w-full mb-2 p-2 border rounded">
+        <option value="1">Basse</option>
+        <option value="2">Moyenne</option>
+        <option value="3">Haute</option>
+      </select>
+      <input type="date" name="due_date" class="w-full mb-4 p-2 border rounded">
+      <select name="project" class="w-full mb-4 p-2 border rounded">
+        <option value="">Aucun projet</option>
+        {% for project in projects %}
+          <option value="{{ project.id }}">{{ project.name }}</option>
+        {% endfor %}
+      </select>
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 border rounded">Annuler</button>
+        <button type="submit" class="bg-violet text-white px-4 py-2 rounded">Créer</button>
+      </div>
+    </form>
+  </div>
+</div>

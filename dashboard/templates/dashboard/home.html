@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind officiel -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              rose: '#F8BBD0',
+              violet: '#8B5CF6', /* violet clair */
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],       // contenu principal
+              serif: ['Merriweather', 'serif'],     // titres
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="font-sans bg-gradient-to-r from-violet-200 via-rose-200 to-rose-300 min-h-screen flex">
+
+    <!-- Menu latéral -->
+    <aside class="w-64 bg-violet text-white flex flex-col p-6">
+        <h1 class="text-2xl font-bold mb-6 font-serif">Mon Dashboard</h1>
+        <nav class="flex flex-col gap-4">
+            <a href="/notes/" class="hover:bg-violet-400 px-3 py-2 rounded font-semibold">Notes</a>
+            <a href="/planner/" class="hover:bg-violet-400 px-3 py-2 rounded font-semibold">Planner</a>
+            <a href="/calendar/" class="hover:bg-violet-400 px-3 py-2 rounded font-semibold">Calendrier</a>
+            <a href="/timer/" class="hover:bg-violet-400 px-3 py-2 rounded font-semibold">Timer</a>
+        </nav>
+    </aside>
+
+    <!-- Zone principale -->
+    <main class="flex-1 p-8 space-y-8">
+
+        <!-- Résumé des tâches prioritaires dynamiques -->
+        <section class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4 text-violet font-serif">Tâches prioritaires</h2>
+            <ul class="space-y-2">
+                {% for task in tasks_priority %}
+                    <li class="p-2 border-l-4 border-rose-500">{{ task.title }}</li>
+                {% empty %}
+                    <li class="p-2 text-gray-500">Aucune tâche prioritaire</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Calendrier semaine (statique pour l'instant) -->
+        <section class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4 text-violet font-serif">Calendrier de la semaine</h2>
+            <div class="grid grid-cols-7 gap-4 text-center">
+                <div class="p-2 bg-violet-100 rounded">Lun</div>
+                <div class="p-2 bg-violet-100 rounded">Mar</div>
+                <div class="p-2 bg-violet-100 rounded">Mer</div>
+                <div class="p-2 bg-violet-100 rounded">Jeu</div>
+                <div class="p-2 bg-violet-100 rounded">Ven</div>
+                <div class="p-2 bg-violet-100 rounded">Sam</div>
+                <div class="p-2 bg-violet-100 rounded">Dim</div>
+            </div>
+        </section>
+
+        <!-- Notes récentes (facultatif) -->
+        <section class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4 text-violet font-serif">Notes récentes</h2>
+            <ul class="space-y-2">
+                {% for note in notes %}
+                    <li class="p-2 border-l-4 border-rose-300">{{ note.title }}</li>
+                {% empty %}
+                    <li class="p-2 text-gray-500">Aucune note pour le moment</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Informations importantes -->
+        <section class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4 text-violet font-serif">Infos importantes</h2>
+            <p>Aucune info pour l’instant…</p>
+        </section>
+
+    </main>
+
+</body>
+</html>
