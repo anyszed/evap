@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Notes - Evap</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899'
+      },
+      fontFamily: {
+        sans: ['Poppins'],
+        serif: ['Merriweather']
+      }
+    }
+  }
+}
+</script>
+
+</head>
+
+<body class="font-sans bg-rose-100 min-h-screen flex">
+
+<!-- SIDEBAR -->
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+    
+    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
+        Evap
+    </a>
+
+    <nav class="flex flex-col gap-3">
+        <a href="/notes/" class="px-3 py-2 rounded bg-darkrose font-semibold">Notes</a>
+        <a href="/planner/" class="px-3 py-2 rounded hover:bg-darkrose">Planner</a>
+        <a href="/calendar/" class="px-3 py-2 rounded hover:bg-darkrose">Calendrier</a>
+        <a href="/timer/" class="px-3 py-2 rounded hover:bg-darkrose">Timer</a>
+    </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-10">
+
+<h1 class="text-3xl font-serif text-rose mb-6">Mes Notes</h1>
+
+<input id="searchInput"
+oninput="filterNotes()"
+placeholder="Rechercher..."
+class="w-full mb-6 p-3 border rounded-xl">
+
+<div id="notesGrid" class="grid grid-cols-3 gap-8">
+
+<!-- CREATE CARD -->
+<div onclick="openCreateModal()"
+class="h-72 bg-white border-2 border-dashed border-rose rounded-2xl flex items-center justify-center cursor-pointer hover:bg-pink-50 transition">
+<span class="text-6xl text-rose">＋</span>
+</div>
+
+<!-- NOTES -->
+{% for note in notes %}
+<div
+id="note-{{ note.id }}"
+draggable="true"
+ondragstart="dragStart(event)"
+ondragover="dragOver(event)"
+ondrop="dropNote(event)"
+data-id="{{ note.id }}"
+data-title="{{ note.title|default_if_none:''|lower }}"
+onclick="openNote({{ note.id }})"
+class="note-card group h-72 rounded-2xl shadow relative overflow-hidden flex flex-col cursor-pointer
+bg-pink-50 border border-rose/30 hover:-translate-y-1 transition">
+
+<!-- TITLE BAR -->
+<div class="bg-rose text-white px-4 py-2 font-bold min-h-[40px]">
+{% if note.title %}
+{{ note.title }}
+{% endif %}
+</div>
+
+<!-- CONTENT -->
+<div class="p-4 text-sm whitespace-pre-wrap overflow-hidden text-gray-700">
+{{ note.content }}
+</div>
+
+<!-- DELETE -->
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition">
+<button onclick="event.stopPropagation(); deleteNote({{ note.id }})"
+class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow hover:bg-red-50 transition">
+🗑
+</button>
+</div>
+
+</div>
+{% endfor %}
+
+</div>
+</main>
+
+<!-- POPUP -->
+<div id="notePopup"
+class="fixed inset-0 hidden items-center justify-center bg-black/50">
+
+<div class="bg-white w-[650px] p-6 rounded-xl flex flex-col">
+
+<input id="popupTitle"
+class="text-xl font-bold mb-3 border p-2 rounded">
+
+<textarea id="popupContent"
+class="h-64 border p-2 rounded whitespace-pre-wrap"></textarea>
+
+<div class="flex justify-end gap-3 mt-4">
+<button onclick="closePopup()" class="px-4 py-2 border rounded">Fermer</button>
+<button onclick="saveNote()" class="px-4 py-2 bg-rose text-white rounded">Enregistrer</button>
+</div>
+
+</div>
+</div>
+
+<!-- CREATE MODAL -->
+<div id="createNoteModal"
+class="fixed inset-0 hidden items-center justify-center bg-black/40"
+onclick="closeCreateModal()">
+
+<div class="bg-white w-[500px] p-6 rounded-xl"
+onclick="event.stopPropagation()">
+
+<input id="newNoteTitle" class="w-full p-2 border mb-3" placeholder="Titre">
+<textarea id="newNoteContent" class="w-full h-40 p-2 border"></textarea>
+
+<div class="flex justify-end gap-3 mt-4">
+<button onclick="closeCreateModal()" class="px-3 py-2 border">Annuler</button>
+<button onclick="createNote()" class="px-3 py-2 bg-rose text-white">Créer</button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let currentNoteId = null;
+let dragged = null;
+
+/* DRAG START */
+function dragStart(e){
+dragged = e.currentTarget;
+}
+
+/* DRAG OVER */
+function dragOver(e){
+e.preventDefault();
+}
+
+/* DROP */
+function dropNote(e){
+e.preventDefault();
+
+if(dragged && dragged !== e.currentTarget){
+const grid = document.getElementById("notesGrid");
+grid.insertBefore(dragged, e.currentTarget);
+
+saveOrder();
+}
+}
+
+/* SAVE ORDER DB */
+function saveOrder(){
+const order = [];
+
+document.querySelectorAll(".note-card").forEach((el, index) => {
+order.push({
+id: el.dataset.id,
+position: index
+});
+});
+
+fetch("/notes/reorder/", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify({order})
+});
+}
+
+/* OPEN NOTE */
+function openNote(id){
+fetch(`/notes/api/${id}/`)
+.then(r => r.json())
+.then(data => {
+currentNoteId = id;
+document.getElementById("popupTitle").value = data.title || "";
+document.getElementById("popupContent").value = data.content;
+
+document.getElementById("notePopup").classList.remove("hidden");
+document.getElementById("notePopup").classList.add("flex");
+});
+}
+
+/* SAVE */
+function saveNote(){
+fetch(`/notes/update/${currentNoteId}/`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify({
+title: document.getElementById("popupTitle").value,
+content: document.getElementById("popupContent").value
+})
+}).then(() => location.reload());
+}
+
+/* CLOSE */
+function closePopup(){
+document.getElementById("notePopup").classList.add("hidden");
+document.getElementById("notePopup").classList.remove("flex");
+}
+
+/* DELETE */
+function deleteNote(id){
+fetch(`/notes/delete/${id}/`, {
+method: "POST",
+headers: {"X-CSRFToken": "{{ csrf_token }}"}
+}).then(() => {
+document.getElementById(`note-${id}`)?.remove();
+});
+}
+
+/* CREATE */
+function createNote(){
+fetch("/notes/create/", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify({
+title: document.getElementById("newNoteTitle").value,
+content: document.getElementById("newNoteContent").value
+})
+}).then(() => location.reload());
+}
+
+/* SEARCH */
+function filterNotes(){
+const value = document.getElementById("searchInput").value.toLowerCase();
+
+document.querySelectorAll(".note-card").forEach(note => {
+note.style.display = note.dataset.title.includes(value) ? "flex" : "none";
+});
+}
+
+/* MODAL */
+function openCreateModal(){
+document.getElementById("createNoteModal").classList.remove("hidden");
+document.getElementById("createNoteModal").classList.add("flex");
+}
+
+function closeCreateModal(){
+document.getElementById("createNoteModal").classList.add("hidden");
+document.getElementById("createNoteModal").classList.remove("flex");
+}
+
+</script>
+
+</body>
+</html>

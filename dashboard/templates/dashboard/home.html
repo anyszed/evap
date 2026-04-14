@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              rose: '#F472B6',
+              darkrose: '#EC4899',
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+              serif: ['Merriweather', 'serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body class="font-sans bg-rose-100 min-h-screen flex">
+
+<!-- SIDEBAR (IDENTIQUE AU PLANNER) -->
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+    
+    <!-- Logo / retour accueil -->
+    <a href="/" class="text-2xl font-bold mb-8 font-serif tracking-wide hover:opacity-80 transition">
+        Evap
+    </a>
+
+    <nav class="flex flex-col gap-3 relative">
+        <div id="active-indicator" class="absolute left-0 w-1 bg-white rounded-l transition-all duration-300"></div>
+
+        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
+            Notes
+        </a>
+
+        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
+            Planner
+        </a>
+
+        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
+            Calendrier
+        </a>
+
+        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
+            Timer
+        </a>
+    </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8 space-y-8">
+
+    <!-- TÂCHES PRIORITAIRES -->
+    <section class="bg-white shadow rounded p-6">
+        <h2 class="text-xl font-serif text-rose mb-4">Tâches prioritaires</h2>
+
+        <ul class="space-y-2">
+            {% for task in tasks_priority %}
+                <li class="p-2 border-l-4 border-rose">
+                    {{ task.title }}
+                </li>
+            {% empty %}
+                <li class="p-2 text-gray-500">Aucune tâche prioritaire</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- CALENDRIER -->
+    <section class="bg-white shadow rounded p-6">
+        <h2 class="text-xl font-serif text-rose mb-4">Calendrier de la semaine</h2>
+
+        <div class="grid grid-cols-7 gap-4 text-center">
+            <div class="p-2 bg-rose-100 rounded">Lun</div>
+            <div class="p-2 bg-rose-100 rounded">Mar</div>
+            <div class="p-2 bg-rose-100 rounded">Mer</div>
+            <div class="p-2 bg-rose-100 rounded">Jeu</div>
+            <div class="p-2 bg-rose-100 rounded">Ven</div>
+            <div class="p-2 bg-rose-100 rounded">Sam</div>
+            <div class="p-2 bg-rose-100 rounded">Dim</div>
+        </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="bg-white shadow rounded p-6">
+        <h2 class="text-xl font-serif text-rose mb-4">Notes récentes</h2>
+
+        <ul class="space-y-2">
+            {% for note in notes %}
+                <li class="p-2 border-l-4 border-rose-300">
+                    {{ note.title }}
+                </li>
+            {% empty %}
+                <li class="p-2 text-gray-500">Aucune note pour le moment</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- INFOS -->
+    <section class="bg-white shadow rounded p-6">
+        <h2 class="text-xl font-serif text-rose mb-4">Statistiques</h2>
+        <p>Aucune stat pour l’instant…</p>
+    </section>
+
+</main>
+
+<script>
+// Active indicator (comme planner)
+function moveActiveIndicator(){
+    const items = document.querySelectorAll('.menu-item');
+    const indicator = document.getElementById('active-indicator');
+    const path = window.location.pathname;
+
+    items.forEach(item => {
+        if(item.dataset.path === path){
+            indicator.style.top = item.offsetTop + 'px';
+            indicator.style.height = item.offsetHeight + 'px';
+        }
+    });
+}
+
+window.addEventListener('load', moveActiveIndicator);
+window.addEventListener('resize', moveActiveIndicator);
+</script>
+
+</body>
+</html>
