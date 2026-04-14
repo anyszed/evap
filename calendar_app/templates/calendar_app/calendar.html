@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Calendar - Evap</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899'
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Merriweather', 'serif']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+.fc {
+  background: white;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.fc-toolbar-title {
+  font-size: 18px !important;
+  font-weight: 600;
+}
+
+.fc-button {
+  background: #F472B6 !important;
+  border: none !important;
+  text-transform: capitalize;
+  box-shadow: none !important;
+}
+
+.fc-button:hover {
+  background: #EC4899 !important;
+}
+
+.fc-button-active {
+  background: #EC4899 !important;
+}
+</style>
+
+</head>
+
+<body class="font-sans bg-rose-100 min-h-screen flex">
+
+<!-- SIDEBAR EVAP (RESTORED EXACT STYLE) -->
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+
+  <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
+    Evap
+  </a>
+
+  <nav class="flex flex-col gap-3 relative">
+
+    <a href="/notes/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
+      Notes
+    </a>
+
+    <a href="/planner/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
+      Planner
+    </a>
+
+    <a href="/calendar/" class="px-3 py-2 rounded bg-darkrose font-semibold">
+      Calendrier
+    </a>
+
+    <a href="/timer/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
+      Timer
+    </a>
+
+  </nav>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-8">
+
+  <h1 class="text-3xl font-serif text-rose mb-6">Calendrier</h1>
+
+  <div id="calendar" class="bg-white rounded-2xl p-4"></div>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const calendarEl = document.getElementById('calendar');
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+
+    locale: 'fr',
+
+    initialView: 'dayGridMonth',
+
+    height: "auto",
+
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+    },
+
+    buttonText: {
+      today: "Aujourd’hui",
+      month: "Mois",
+      week: "Semaine",
+      day: "Jour",
+      list: "Liste"
+    },
+
+    events: '/calendar/events/',
+
+    eventDisplay: 'block',
+
+    noEventsText: "Aucun événement"
+
+  });
+
+  calendar.render();
+
+});
+</script>
+
+</body>
+</html>

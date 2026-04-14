@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'notes',
     'dashboard',
     'planner',
+    'calendar_app',
 ]
 
 MIDDLEWARE = [

@@ -13,4 +13,6 @@ urlpatterns = [
 
     # si tu as d'autres apps
     path('notes/', include('notes.urls')),
+
+    path('calendar/', include('calendar_app.urls')),
 ]
