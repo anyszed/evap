@@ -5,7 +5,6 @@
 <title>Calendar - Evap</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -17,11 +16,8 @@ tailwind.config = {
     extend: {
       colors: {
         rose: '#F472B6',
-        darkrose: '#EC4899'
-      },
-      fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
-        serif: ['Merriweather', 'serif']
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7'
       }
     }
   }
@@ -31,29 +27,42 @@ tailwind.config = {
 <style>
 .fc {
   background: white;
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
 }
 
 .fc-toolbar-title {
-  font-size: 18px !important;
+  color: #EC4899;
   font-weight: 600;
 }
 
 .fc-button {
   background: #F472B6 !important;
   border: none !important;
-  text-transform: capitalize;
-  box-shadow: none !important;
+  border-radius: 10px !important;
 }
 
 .fc-button:hover {
   background: #EC4899 !important;
 }
 
-.fc-button-active {
-  background: #EC4899 !important;
+.fc-event {
+  border: none !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #F472B6, #EC4899) !important;
+}
+
+.fc-day-today {
+  background: #FFE4F1 !important;
+}
+
+.event-card {
+  background: white;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+  border-left: 4px solid #F472B6;
 }
 </style>
 
@@ -61,82 +70,176 @@ tailwind.config = {
 
 <body class="font-sans bg-rose-100 min-h-screen flex">
 
-<!-- SIDEBAR EVAP (RESTORED EXACT STYLE) -->
+<!-- SIDEBAR -->
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
 
-  <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
-    Evap
-  </a>
+<a href="/" class="text-2xl font-bold mb-6 font-serif">Evap</a>
 
-  <nav class="flex flex-col gap-3 relative">
-
-    <a href="/notes/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
-      Notes
-    </a>
-
-    <a href="/planner/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
-      Planner
-    </a>
-
-    <a href="/calendar/" class="px-3 py-2 rounded bg-darkrose font-semibold">
-      Calendrier
-    </a>
-
-    <a href="/timer/" class="px-3 py-2 rounded font-semibold hover:bg-darkrose transition">
-      Timer
-    </a>
-
-  </nav>
+<nav class="flex flex-col gap-3 mb-8">
+<a href="/notes/" class="px-3 py-2 hover:bg-darkrose rounded">Notes</a>
+<a href="/planner/" class="px-3 py-2 hover:bg-darkrose rounded">Planner</a>
+<a href="/calendar/" class="px-3 py-2 bg-darkrose rounded">Calendrier</a>
+<a href="/timer/" class="px-3 py-2 hover:bg-darkrose rounded">Timer</a>
+</nav>
 
 </aside>
 
 <!-- MAIN -->
-<main class="flex-1 p-8">
+<main class="flex-1 p-10">
+<h1 class="text-3xl text-rose font-serif mb-6">Calendrier</h1>
 
-  <h1 class="text-3xl font-serif text-rose mb-6">Calendrier</h1>
-
-  <div id="calendar" class="bg-white rounded-2xl p-4"></div>
-
+<div id="calendar"></div>
 </main>
 
+<!-- MODAL -->
+<div id="eventModal"
+class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
+
+<div class="bg-white p-6 rounded-2xl w-[420px] shadow-xl">
+
+<h2 class="text-xl font-bold mb-4 text-rose">Nouvel événement</h2>
+
+<input id="eventTitle" placeholder="Titre"
+class="w-full p-2 border rounded mb-3">
+
+<input id="eventStart" type="time" step="1800"
+class="w-full p-2 border rounded mb-3">
+
+<input id="eventEnd" type="time" step="1800"
+class="w-full p-2 border rounded mb-3">
+
+<select id="recurrenceType" class="w-full p-2 border rounded mb-3">
+  <option value="">Pas de récurrence</option>
+  <option value="daily">Quotidien</option>
+  <option value="weekly">Hebdomadaire</option>
+  <option value="monthly">Mensuel</option>
+</select>
+
+<input id="recurrenceEnd" type="date"
+class="w-full p-2 border rounded mb-4">
+
+<div class="flex justify-end gap-2">
+<button onclick="closeModal()" class="px-3 py-2 border rounded">Annuler</button>
+<button onclick="createEventHandler()" class="px-3 py-2 bg-rose text-white rounded">Créer</button>
+</div>
+
+</div>
+</div>
+
 <script>
+
+let selectedDate = null;
+let calendar = null;
+
+/* INIT */
 document.addEventListener('DOMContentLoaded', function () {
 
-  const calendarEl = document.getElementById('calendar');
+calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
+locale: 'fr',
+initialView: 'dayGridMonth',
+editable: true,
+height: "auto",
 
-    locale: 'fr',
+slotDuration: '00:30:00',
+snapDuration: '00:30:00',
 
-    initialView: 'dayGridMonth',
+headerToolbar: {
+left: 'prev,next today',
+center: 'title',
+right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+},
 
-    height: "auto",
+buttonText: {
+today: "Aujourd’hui",
+month: "Mois",
+week: "Semaine",
+day: "Jour",
+list: "Liste"
+},
 
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-    },
+events: '/calendar/events/',
 
-    buttonText: {
-      today: "Aujourd’hui",
-      month: "Mois",
-      week: "Semaine",
-      day: "Jour",
-      list: "Liste"
-    },
+dateClick: function(info){
+selectedDate = info.dateStr.split("T")[0];
+openModal();
+},
 
-    events: '/calendar/events/',
-
-    eventDisplay: 'block',
-
-    noEventsText: "Aucun événement"
-
-  });
-
-  calendar.render();
+eventDrop: updateEvent,
+eventResize: updateEvent,
 
 });
+
+calendar.render();
+});
+
+/* MODAL */
+function openModal(){
+document.getElementById("eventModal").classList.remove("hidden");
+document.getElementById("eventModal").classList.add("flex");
+}
+
+function closeModal(){
+document.getElementById("eventModal").classList.add("hidden");
+document.getElementById("eventModal").classList.remove("flex");
+}
+
+/* CREATE EVENT */
+function createEventHandler(){
+
+const title = document.getElementById("eventTitle").value;
+let startTime = document.getElementById("eventStart").value;
+let endTime = document.getElementById("eventEnd").value;
+
+const recurrenceType = document.getElementById("recurrenceType").value;
+const recurrenceEnd = document.getElementById("recurrenceEnd").value;
+
+if(!title || !startTime){
+alert("Titre + heure requis");
+return;
+}
+
+const start = selectedDate + "T" + startTime + ":00";
+const end = endTime ? selectedDate + "T" + endTime + ":00" : null;
+
+fetch("/calendar/create/", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify({
+title,
+start,
+end,
+recurrence_type: recurrenceType,
+recurrence_end: recurrenceEnd || null
+})
+})
+.then(res => res.json())
+.then(() => {
+calendar.refetchEvents();
+closeModal();
+});
+}
+
+/* UPDATE */
+function updateEvent(ev){
+
+fetch(`/calendar/update/${ev.id}/`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify({
+start: ev.start.toISOString(),
+end: ev.end ? ev.end.toISOString() : null
+})
+});
+
+}
+
 </script>
 
 </body>
