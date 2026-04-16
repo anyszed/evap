@@ -36,11 +36,23 @@ tailwind.config = {
         Evap
     </a>
 
-    <nav class="flex flex-col gap-3">
-        <a href="/notes/" class="px-3 py-2 rounded bg-darkrose font-semibold">Notes</a>
-        <a href="/planner/" class="px-3 py-2 rounded hover:bg-darkrose">Planner</a>
-        <a href="/calendar/" class="px-3 py-2 rounded hover:bg-darkrose">Calendrier</a>
-        <a href="/timer/" class="px-3 py-2 rounded hover:bg-darkrose">Timer</a>
+    <nav class="flex flex-col gap-3 relative">
+    
+        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
+            Notes
+        </a>
+
+        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
+            Planner
+        </a>
+
+        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
+            Calendrier
+        </a>
+
+        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
+            Timer
+        </a>
     </nav>
 </aside>
 
@@ -270,6 +282,6 @@ document.getElementById("createNoteModal").classList.remove("flex");
 }
 
 </script>
-
+<script src="/static/js/evap-timer.js"></script>
 </body>
 </html>

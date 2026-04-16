@@ -15,7 +15,11 @@ tailwind.config = {
         rose: '#F472B6',
         darkrose: '#EC4899',
         softbg: '#FFF1F7'
-      }
+      },
+      fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+              serif: ['Merriweather', 'serif'],
+            }
     }
   }
 }
@@ -109,20 +113,33 @@ input { outline: none; }
 </style>
 </head>
 
-<body class="bg-softbg min-h-screen flex">
+<body class="font-sans bg-rose-100 min-h-screen flex">
 
 <!-- SIDEBAR -->
-<aside class="w-64 text-white flex flex-col p-6 min-h-screen">
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+    
+    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
+        Evap
+    </a>
 
-<a href="/" class="text-2xl font-bold mb-6 font-serif">Evap</a>
+    <nav class="flex flex-col gap-3 relative">
+    
+        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
+            Notes
+        </a>
 
-<nav class="flex flex-col gap-3 mb-8">
-<a href="/notes/" class="px-3 py-2 hover:bg-darkrose rounded">Notes</a>
-<a href="/planner/" class="px-3 py-2 hover:bg-darkrose rounded">Planner</a>
-<a href="/calendar/" class="px-3 py-2 hover:bg-darkrose rounded">Calendrier</a>
-<a href="/timer/" class="px-3 py-2 bg-darkrose rounded">Timer</a>
-</nav>
+        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
+            Planner
+        </a>
 
+        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
+            Calendrier
+        </a>
+
+        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
+            Timer
+        </a>
+    </nav>
 </aside>
 
 <!-- MAIN -->
@@ -303,6 +320,6 @@ function toggleMini(){
 setMode("stopwatch");
 
 </script>
-
+<script src="/static/js/evap-timer.js"></script>
 </body>
 </html>

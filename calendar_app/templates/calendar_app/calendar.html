@@ -18,7 +18,11 @@ tailwind.config = {
         rose: '#F472B6',
         darkrose: '#EC4899',
         softbg: '#FFF1F7'
-      }
+      },
+      fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+              serif: ['Merriweather', 'serif'],
+            }
     }
   }
 }
@@ -101,21 +105,29 @@ tailwind.config = {
 <body class="font-sans bg-rose-100 min-h-screen flex">
 
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+    
+    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
+        Evap
+    </a>
 
-<a href="/" class="text-2xl font-bold mb-6 font-serif">Evap</a>
+    <nav class="flex flex-col gap-3 relative">
+    
+        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
+            Notes
+        </a>
 
-<nav class="flex flex-col gap-3 mb-8">
-<a href="/notes/" class="px-3 py-2 hover:bg-darkrose rounded">Notes</a>
-<a href="/planner/" class="px-3 py-2 hover:bg-darkrose rounded">Planner</a>
-<a href="/calendar/" class="px-3 py-2 bg-darkrose rounded">Calendrier</a>
-<a href="/timer/" class="px-3 py-2 hover:bg-darkrose rounded">Timer</a>
-</nav>
+        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
+            Planner
+        </a>
 
-<div>
-<h2 class="text-sm uppercase opacity-70 mb-3">Aujourd’hui</h2>
-<div id="todayEvents" class="space-y-2"></div>
-</div>
+        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
+            Calendrier
+        </a>
 
+        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
+            Timer
+        </a>
+    </nav>
 </aside>
 
 <main class="flex-1 p-10">
