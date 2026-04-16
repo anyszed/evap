@@ -50,7 +50,6 @@ tailwind.config = {
 .fc-event {
   border: none !important;
   border-radius: 10px !important;
-  background: linear-gradient(135deg, #F472B6, #EC4899) !important;
 }
 
 .fc-day-today {
@@ -63,6 +62,37 @@ tailwind.config = {
   padding: 10px;
   box-shadow: 0 4px 18px rgba(0,0,0,0.06);
   border-left: 4px solid #F472B6;
+  margin-bottom: 8px;
+}
+
+#eventMenu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+  z-index: 9999;
+}
+
+.menu-btn {
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #eee;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-btn:hover {
+  background: #FDF2F8;
 }
 </style>
 
@@ -70,7 +100,6 @@ tailwind.config = {
 
 <body class="font-sans bg-rose-100 min-h-screen flex">
 
-<!-- SIDEBAR -->
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
 
 <a href="/" class="text-2xl font-bold mb-6 font-serif">Evap</a>
@@ -82,31 +111,57 @@ tailwind.config = {
 <a href="/timer/" class="px-3 py-2 hover:bg-darkrose rounded">Timer</a>
 </nav>
 
+<div>
+<h2 class="text-sm uppercase opacity-70 mb-3">Aujourd’hui</h2>
+<div id="todayEvents" class="space-y-2"></div>
+</div>
+
 </aside>
 
-<!-- MAIN -->
 <main class="flex-1 p-10">
 <h1 class="text-3xl text-rose font-serif mb-6">Calendrier</h1>
-
 <div id="calendar"></div>
 </main>
 
-<!-- MODAL -->
+<!-- MODAL PROPRE -->
 <div id="eventModal"
 class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
 
-<div class="bg-white p-6 rounded-2xl w-[420px] shadow-xl">
+<div class="bg-white p-6 rounded-2xl w-[440px] shadow-xl">
 
-<h2 class="text-xl font-bold mb-4 text-rose">Nouvel événement</h2>
+<h2 class="text-xl font-bold mb-4 text-rose">Événement</h2>
 
 <input id="eventTitle" placeholder="Titre"
-class="w-full p-2 border rounded mb-3">
+class="w-full p-2 border rounded mb-4">
 
-<input id="eventStart" type="time" step="1800"
-class="w-full p-2 border rounded mb-3">
+<!-- START -->
+<div class="flex gap-2 mb-4">
+  <select id="startHour" class="w-1/2 p-2 border rounded"></select>
+  <select id="startMinute" class="w-1/2 p-2 border rounded">
+    <option>00</option>
+    <option>15</option>
+    <option>30</option>
+    <option>45</option>
+  </select>
+</div>
 
-<input id="eventEnd" type="time" step="1800"
-class="w-full p-2 border rounded mb-3">
+<!-- END -->
+<div class="flex gap-2 mb-4">
+  <select id="endHour" class="w-1/2 p-2 border rounded"></select>
+  <select id="endMinute" class="w-1/2 p-2 border rounded">
+    <option value="">--</option>
+    <option>00</option>
+    <option>15</option>
+    <option>30</option>
+    <option>45</option>
+  </select>
+</div>
+
+<select id="eventType" class="w-full p-2 border rounded mb-3">
+  <option value="personal">Personnel</option>
+  <option value="course">Cours</option>
+  <option value="meeting">Rendez-vous</option>
+</select>
 
 <select id="recurrenceType" class="w-full p-2 border rounded mb-3">
   <option value="">Pas de récurrence</option>
@@ -120,29 +175,50 @@ class="w-full p-2 border rounded mb-4">
 
 <div class="flex justify-end gap-2">
 <button onclick="closeModal()" class="px-3 py-2 border rounded">Annuler</button>
-<button onclick="createEventHandler()" class="px-3 py-2 bg-rose text-white rounded">Créer</button>
+<button onclick="saveEvent()" class="px-3 py-2 bg-rose text-white rounded">Sauver</button>
 </div>
 
 </div>
+</div>
+
+<!-- MENU -->
+<div id="eventMenu">
+  <button class="menu-btn" onclick="openEdit()">Modifier</button>
+  <button class="menu-btn" onclick="deleteSingle()">Supprimer</button>
+  <hr>
+  <button class="menu-btn" onclick="editSeries()">Modifier série</button>
+  <button class="menu-btn" onclick="deleteSeries()">Supprimer série</button>
+  <button class="menu-btn" onclick="closeMenu()">Fermer</button>
 </div>
 
 <script>
 
 let selectedDate = null;
 let calendar = null;
+let selectedEvent = null;
+let editingEventId = null;
 
-/* INIT */
+/* populate hours */
+function fillHours() {
+  const start = document.getElementById("startHour");
+  const end = document.getElementById("endHour");
+
+  for (let i = 0; i < 24; i++) {
+    const val = i.toString().padStart(2, '0');
+    start.innerHTML += `<option value="${val}">${val}</option>`;
+    end.innerHTML += `<option value="${val}">${val}</option>`;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
-calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+fillHours();
 
+calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
 locale: 'fr',
 initialView: 'dayGridMonth',
 editable: true,
 height: "auto",
-
-slotDuration: '00:30:00',
-snapDuration: '00:30:00',
 
 headerToolbar: {
 left: 'prev,next today',
@@ -150,30 +226,68 @@ center: 'title',
 right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
 },
 
-buttonText: {
-today: "Aujourd’hui",
-month: "Mois",
-week: "Semaine",
-day: "Jour",
-list: "Liste"
-},
-
+slotDuration: '00:30:00',
+snapDuration: '00:30:00',
 events: '/calendar/events/',
 
-dateClick: function(info){
+dateClick(info){
 selectedDate = info.dateStr.split("T")[0];
 openModal();
 },
 
+eventClick(info){
+selectedEvent = info.event;
+openMenu();
+},
+
 eventDrop: updateEvent,
 eventResize: updateEvent,
-
+eventDidMount: syncSidebar
 });
 
 calendar.render();
 });
 
-/* MODAL */
+/* SAVE */
+function saveEvent(){
+
+const title = document.getElementById("eventTitle").value;
+
+const start = `${selectedDate}T${document.getElementById("startHour").value}:${document.getElementById("startMinute").value}:00`;
+
+const endMin = document.getElementById("endMinute").value;
+
+const end = endMin
+? `${selectedDate}T${document.getElementById("endHour").value}:${endMin}:00`
+: null;
+
+const payload = {
+title,
+start,
+end,
+type: document.getElementById("eventType").value,
+recurrence_type: document.getElementById("recurrenceType").value || null,
+recurrence_end: document.getElementById("recurrenceEnd").value || null
+};
+
+const url = editingEventId
+? `/calendar/update/${editingEventId}/`
+: "/calendar/create/";
+
+fetch(url, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken": "{{ csrf_token }}"
+},
+body: JSON.stringify(payload)
+}).then(() => {
+calendar.refetchEvents();
+closeModal();
+});
+}
+
+/* UI */
 function openModal(){
 document.getElementById("eventModal").classList.remove("hidden");
 document.getElementById("eventModal").classList.add("flex");
@@ -182,62 +296,120 @@ document.getElementById("eventModal").classList.add("flex");
 function closeModal(){
 document.getElementById("eventModal").classList.add("hidden");
 document.getElementById("eventModal").classList.remove("flex");
+editingEventId = null;
 }
 
-/* CREATE EVENT */
-function createEventHandler(){
-
-const title = document.getElementById("eventTitle").value;
-let startTime = document.getElementById("eventStart").value;
-let endTime = document.getElementById("eventEnd").value;
-
-const recurrenceType = document.getElementById("recurrenceType").value;
-const recurrenceEnd = document.getElementById("recurrenceEnd").value;
-
-if(!title || !startTime){
-alert("Titre + heure requis");
-return;
+function openMenu(){
+document.getElementById("eventMenu").style.display = "flex";
 }
 
-const start = selectedDate + "T" + startTime + ":00";
-const end = endTime ? selectedDate + "T" + endTime + ":00" : null;
+function closeMenu(){
+document.getElementById("eventMenu").style.display = "none";
+}
 
-fetch("/calendar/create/", {
-method: "POST",
-headers: {
-"Content-Type": "application/json",
-"X-CSRFToken": "{{ csrf_token }}"
-},
-body: JSON.stringify({
-title,
-start,
-end,
-recurrence_type: recurrenceType,
-recurrence_end: recurrenceEnd || null
-})
-})
-.then(res => res.json())
-.then(() => {
-calendar.refetchEvents();
-closeModal();
+/* SIDEBAR */
+function syncSidebar(){
+const box = document.getElementById("todayEvents");
+if(!box) return;
+
+const today = new Date().toISOString().split("T")[0];
+const events = calendar.getEvents().filter(e => e.startStr.startsWith(today));
+
+box.innerHTML = events.length ? "" : "<p class='opacity-60'>Aucun événement</p>";
+
+events.forEach(ev => {
+const div = document.createElement("div");
+div.className = "event-card";
+div.innerHTML = `
+<div class="font-semibold text-rose">${ev.title}</div>
+<div class="text-xs text-gray-500">
+${new Date(ev.start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+</div>`;
+box.appendChild(div);
 });
 }
 
 /* UPDATE */
-function updateEvent(ev){
-
-fetch(`/calendar/update/${ev.id}/`, {
+function updateEvent(info){
+fetch(`/calendar/update/${info.event.id}/`, {
 method: "POST",
 headers: {
 "Content-Type": "application/json",
-"X-CSRFToken": "{{ csrf_token }}"
+"X-CSRFToken":"{{ csrf_token }}"
 },
 body: JSON.stringify({
-start: ev.start.toISOString(),
-end: ev.end ? ev.end.toISOString() : null
+start: info.event.start.toISOString(),
+end: info.event.end ? info.event.end.toISOString() : null,
+mode: "single"
 })
-});
+}).then(() => calendar.refetchEvents());
+}
 
+/* DELETE */
+function deleteSingle(){
+fetch(`/calendar/delete/${selectedEvent.id}/`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken":"{{ csrf_token }}"
+},
+body: JSON.stringify({mode:"single"})
+}).then(() => {
+calendar.refetchEvents();
+closeMenu();
+});
+}
+
+/* SERIES */
+function deleteSeries(){
+fetch(`/calendar/delete/${selectedEvent.id}/`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken":"{{ csrf_token }}"
+},
+body: JSON.stringify({mode:"series"})
+}).then(() => {
+calendar.refetchEvents();
+closeMenu();
+});
+}
+
+function openEdit(){
+const ev = selectedEvent;
+editingEventId = ev.id;
+
+document.getElementById("eventTitle").value = ev.title;
+
+const start = new Date(ev.start);
+document.getElementById("startHour").value = start.toTimeString().slice(0,2);
+document.getElementById("startMinute").value = start.toTimeString().slice(3,5);
+
+openModal();
+closeMenu();
+}
+
+function editSeries(){
+
+const newTime = prompt("Nouvelle heure (HH:MM)");
+if(!newTime) return;
+
+const baseDate = selectedEvent.startStr.split("T")[0];
+
+fetch(`/calendar/update/${selectedEvent.id}/`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-CSRFToken":"{{ csrf_token }}"
+},
+body: JSON.stringify({
+start: `${baseDate}T${newTime}:00`,
+mode:"series"
+})
+}).then(() => {
+calendar.refetchEvents();
+closeMenu();
+});
 }
 
 </script>

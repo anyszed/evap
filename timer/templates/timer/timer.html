@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Timer - Evap</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7'
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: Poppins, sans-serif; }
+
+/* SIDEBAR */
+aside { background: #F472B6; }
+
+/* CARD */
+.card {
+  background: white;
+  border-radius: 22px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+
+/* TIMER */
+.timer-display {
+  font-size: 72px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #EC4899;
+}
+
+/* BASE BUTTON */
+.btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+/* PRIMARY */
+.btn-primary {
+  background: #F472B6;
+  color: white;
+  border: 1px solid transparent;
+}
+
+.btn-primary:hover {
+  background: #EC4899;
+}
+
+/* GHOST */
+.btn-ghost {
+  border: 1px solid #F472B6;
+  color: #EC4899;
+  background: white;
+}
+
+.btn-ghost:hover {
+  background: #FFF1F7;
+}
+
+/* 🔥 FIX IMPORTANT: ACTIVE STATE FOR ALL BUTTONS */
+.active-mode {
+  background: #EC4899 !important;
+  color: white !important;
+  border-color: #EC4899 !important;
+}
+
+/* ACTIVE CONTROL STATE (Start/Pause visual feedback) */
+.active-control {
+  background: #EC4899 !important;
+  color: white !important;
+  border-color: #EC4899 !important;
+}
+
+/* MINI TIMER */
+#miniTimer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid #F472B6;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  z-index: 9999;
+  font-weight: 600;
+  color: #EC4899;
+  cursor: pointer;
+}
+
+input { outline: none; }
+</style>
+</head>
+
+<body class="bg-softbg min-h-screen flex">
+
+<!-- SIDEBAR -->
+<aside class="w-64 text-white flex flex-col p-6 min-h-screen">
+
+<a href="/" class="text-2xl font-bold mb-6 font-serif">Evap</a>
+
+<nav class="flex flex-col gap-3 mb-8">
+<a href="/notes/" class="px-3 py-2 hover:bg-darkrose rounded">Notes</a>
+<a href="/planner/" class="px-3 py-2 hover:bg-darkrose rounded">Planner</a>
+<a href="/calendar/" class="px-3 py-2 hover:bg-darkrose rounded">Calendrier</a>
+<a href="/timer/" class="px-3 py-2 bg-darkrose rounded">Timer</a>
+</nav>
+
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 p-10 flex items-center justify-center">
+
+<div class="card w-[540px] p-10 text-center">
+
+<!-- MODE -->
+<div class="flex justify-center gap-2 mb-8">
+<button id="btnStopwatch" class="btn btn-primary" onclick="setMode('stopwatch')">
+Chrono
+</button>
+<button id="btnCountdown" class="btn btn-ghost" onclick="setMode('countdown')">
+Minuteur
+</button>
+</div>
+
+<!-- DISPLAY -->
+<div id="display" class="timer-display mb-6">00:00:00</div>
+
+<!-- INPUT -->
+<div id="countdownSetup" class="hidden mb-6">
+<div class="flex gap-2 justify-center">
+<input id="minutesInput" type="number" min="0" placeholder="min"
+class="border rounded p-2 w-20 text-center">
+
+<input id="secondsInput" type="number" min="0" max="59" placeholder="sec"
+class="border rounded p-2 w-20 text-center">
+</div>
+</div>
+
+<!-- CONTROLS -->
+<div class="flex justify-center gap-3">
+<button id="btnStart" class="btn btn-primary" onclick="startTimer()">Start</button>
+<button id="btnPause" class="btn btn-ghost" onclick="pauseTimer()">Pause</button>
+<button id="btnReset" class="btn btn-ghost" onclick="resetTimer()">Reset</button>
+</div>
+
+</div>
+
+</main>
+
+<!-- MINI TIMER -->
+<div id="miniTimer" onclick="toggleMini()">00:00:00</div>
+
+<script>
+
+let mode = "stopwatch";
+let interval = null;
+
+let startTime = null;
+let elapsed = 0;
+let duration = 0;
+let running = false;
+let miniVisible = false;
+
+/* MODE UI */
+function setActiveModeButtons(){
+  document.getElementById("btnStopwatch").classList.remove("active-mode");
+  document.getElementById("btnCountdown").classList.remove("active-mode");
+
+  if(mode === "stopwatch"){
+    document.getElementById("btnStopwatch").classList.add("active-mode");
+  } else {
+    document.getElementById("btnCountdown").classList.add("active-mode");
+  }
+}
+
+/* CONTROL UI */
+function setControlState(active){
+  ["btnStart","btnPause","btnReset"].forEach(id => {
+    document.getElementById(id).classList.remove("active-control");
+  });
+
+  if(active){
+    document.getElementById(active).classList.add("active-control");
+  }
+}
+
+/* MODE */
+function setMode(m){
+  resetTimer();
+  mode = m;
+
+  document.getElementById("countdownSetup").style.display =
+    m === "countdown" ? "block" : "none";
+
+  setActiveModeButtons();
+  setControlState(null);
+}
+
+/* START */
+function startTimer(){
+  if(running) return;
+  running = true;
+
+  setControlState("btnStart");
+
+  document.getElementById("miniTimer").style.display = "block";
+
+  if(mode === "stopwatch"){
+    startTime = Date.now() - elapsed;
+
+    interval = setInterval(() => {
+      elapsed = Date.now() - startTime;
+      updateDisplay(elapsed);
+    }, 100);
+  }
+
+  if(mode === "countdown"){
+    const min = parseInt(document.getElementById("minutesInput").value || 0);
+    const sec = parseInt(document.getElementById("secondsInput").value || 0);
+
+    duration = (min * 60 + sec) * 1000;
+    startTime = Date.now();
+
+    interval = setInterval(() => {
+      const remaining = duration - (Date.now() - startTime);
+
+      if(remaining <= 0){
+        resetTimer();
+        updateDisplay(0);
+        return;
+      }
+
+      updateDisplay(remaining);
+    }, 100);
+  }
+}
+
+/* PAUSE */
+function pauseTimer(){
+  if(!running) return;
+  running = false;
+  clearInterval(interval);
+
+  setControlState("btnPause");
+}
+
+/* RESET */
+function resetTimer(){
+  clearInterval(interval);
+  running = false;
+
+  elapsed = 0;
+  startTime = null;
+  duration = 0;
+
+  updateDisplay(0);
+
+  document.getElementById("miniTimer").style.display = "none";
+
+  setControlState("btnReset");
+}
+
+/* DISPLAY */
+function updateDisplay(ms){
+
+  const total = Math.floor(ms / 1000);
+  const h = String(Math.floor(total / 3600)).padStart(2,'0');
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2,'0');
+  const s = String(total % 60).padStart(2,'0');
+
+  const txt = `${h}:${m}:${s}`;
+
+  document.getElementById("display").innerText = txt;
+  document.getElementById("miniTimer").innerText = txt;
+}
+
+/* MINI */
+function toggleMini(){
+  const el = document.getElementById("miniTimer");
+  miniVisible = !miniVisible;
+  el.style.opacity = miniVisible ? "0.4" : "1";
+}
+
+/* INIT */
+setMode("stopwatch");
+
+</script>
+
+</body>
+</html>
