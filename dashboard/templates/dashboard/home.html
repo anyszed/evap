@@ -1,121 +1,209 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
+<meta charset="UTF-8">
+<title>Dashboard - Evap</title>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              rose: '#F472B6',
-              darkrose: '#EC4899',
-            },
-            fontFamily: {
-              sans: ['Poppins', 'sans-serif'],
-              serif: ['Merriweather', 'serif'],
-            }
-          }
-        }
+<!-- FULLCALENDAR -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7'
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Merriweather', 'serif'],
       }
-    </script>
+    }
+  }
+}
+</script>
+
+<style>
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  transition: 0.2s;
+}
+
+.priority-high {
+  border-left: 5px solid #EC4899;
+}
+
+.note-card {
+  border-left: 4px solid #F472B6;
+}
+
+/* FULLCALENDAR */
+.fc {
+  background: white;
+  border-radius: 16px;
+  padding: 10px;
+}
+
+.fc-toolbar-title {
+  color: #EC4899;
+  font-weight: 600;
+}
+
+.fc-button {
+  background: #F472B6 !important;
+  border: none !important;
+  border-radius: 10px !important;
+}
+
+.fc-button:hover {
+  background: #EC4899 !important;
+}
+
+.fc-event {
+  border: none !important;
+  border-radius: 8px !important;
+}
+
+.fc-day-today {
+  background: #FFF1F7 !important;
+}
+
+/* TODAY EVENTS */
+.event-card {
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  border-left: 4px solid #F472B6;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+</style>
+
 </head>
 
-<body class="font-sans bg-rose-100 min-h-screen flex">
+<body class="font-sans bg-softbg min-h-screen flex">
 
-<!-- SIDEBAR (IDENTIQUE AU PLANNER) -->
+<!-- SIDEBAR -->
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-    
-    <!-- Logo / retour accueil -->
-    <a href="/" class="text-2xl font-bold mb-8 font-serif tracking-wide hover:opacity-80 transition">
-        Evap
-    </a>
+<a href="/" class="text-2xl font-bold mb-8 font-serif">Evap</a>
 
-    <nav class="flex flex-col gap-3 relative">
-        <div id="active-indicator" class="absolute left-0 w-1 bg-white rounded-l transition-all duration-300"></div>
+<nav class="flex flex-col gap-3 relative">
+<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded-l"></div>
 
-        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
-            Notes
-        </a>
-
-        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
-            Planner
-        </a>
-
-        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
-            Calendrier
-        </a>
-
-        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
-            Timer
-        </a>
-    </nav>
+<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Notes</a>
+<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
+<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
+<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
+</nav>
 </aside>
 
 <!-- MAIN -->
-<main class="flex-1 p-8 space-y-8">
+<main class="flex-1 p-10 space-y-8">
 
-    <!-- TÂCHES PRIORITAIRES -->
-    <section class="bg-white shadow rounded p-6">
-        <h2 class="text-xl font-serif text-rose mb-4">Tâches prioritaires</h2>
+<!-- HEADER -->
+<div>
+<h1 class="text-3xl font-serif text-rose">Bienvenue sur Evap...</h1>
+<p class="text-gray-500">Pour l'amour de ma vie</p>
+</div>
 
-        <ul class="space-y-2">
-            {% for task in tasks_priority %}
-                <li class="p-2 border-l-4 border-rose">
-                    {{ task.title }}
-                </li>
-            {% empty %}
-                <li class="p-2 text-gray-500">Aucune tâche prioritaire</li>
-            {% endfor %}
-        </ul>
-    </section>
+<div class="grid grid-cols-3 gap-6">
 
-    <!-- CALENDRIER -->
-    <section class="bg-white shadow rounded p-6">
-        <h2 class="text-xl font-serif text-rose mb-4">Calendrier de la semaine</h2>
+<!-- CALENDAR -->
+<section class="card col-span-2">
+<h2 class="text-xl font-serif text-rose mb-4">Semaine</h2>
+<div id="calendar"></div>
+</section>
 
-        <div class="grid grid-cols-7 gap-4 text-center">
-            <div class="p-2 bg-rose-100 rounded">Lun</div>
-            <div class="p-2 bg-rose-100 rounded">Mar</div>
-            <div class="p-2 bg-rose-100 rounded">Mer</div>
-            <div class="p-2 bg-rose-100 rounded">Jeu</div>
-            <div class="p-2 bg-rose-100 rounded">Ven</div>
-            <div class="p-2 bg-rose-100 rounded">Sam</div>
-            <div class="p-2 bg-rose-100 rounded">Dim</div>
-        </div>
-    </section>
+<!-- TODAY EVENTS -->
+<section class="card">
+<h2 class="text-xl font-serif text-rose mb-4">Aujourd’hui</h2>
 
-    <!-- NOTES -->
-    <section class="bg-white shadow rounded p-6">
-        <h2 class="text-xl font-serif text-rose mb-4">Notes récentes</h2>
+<div id="todayEvents" class="space-y-2 text-sm">
+<p class="text-gray-400">Chargement...</p>
+</div>
+</section>
 
-        <ul class="space-y-2">
-            {% for note in notes %}
-                <li class="p-2 border-l-4 border-rose-300">
-                    {{ note.title }}
-                </li>
-            {% empty %}
-                <li class="p-2 text-gray-500">Aucune note pour le moment</li>
-            {% endfor %}
-        </ul>
-    </section>
+<!-- STATS -->
+<section class="card">
+<h2 class="text-xl font-serif text-rose mb-4">Stats</h2>
 
-    <!-- INFOS -->
-    <section class="bg-white shadow rounded p-6">
-        <h2 class="text-xl font-serif text-rose mb-4">Statistiques</h2>
-        <p>Aucune stat pour l’instant…</p>
-    </section>
+<div class="space-y-4">
+
+<div>
+<p class="text-sm">Progression</p>
+<div class="w-full bg-gray-200 rounded-full h-3 mt-1">
+<div class="bg-rose h-3 rounded-full"
+     style="width: {{ stats.percent }}%">
+</div>
+</div>
+</div>
+
+<div class="flex justify-between">
+<span>Tâches</span>
+<span>{{ stats.total_tasks }}</span>
+</div>
+
+<div class="flex justify-between">
+<span>Complétées</span>
+<span class="text-green-500">{{ stats.completed_tasks }}</span>
+</div>
+
+<div class="flex justify-between">
+<span>Notes</span>
+<span>{{ stats.total_notes }}</span>
+</div>
+
+</div>
+</section>
+
+<!-- PRIORITIES -->
+<section class="card col-span-2">
+<h2 class="text-xl font-serif text-rose mb-4">Priorités</h2>
+
+<div class="space-y-2">
+{% for task in tasks_priority %}
+<div class="p-3 rounded priority-high shadow-sm hover:bg-rose-50 transition">
+{{ task.title }}
+</div>
+{% empty %}
+<p class="text-gray-400">Aucune tâche</p>
+{% endfor %}
+</div>
+</section>
+
+<!-- NOTES -->
+<section class="card">
+<h2 class="text-xl font-serif text-rose mb-4">Notes</h2>
+
+<div class="space-y-2">
+{% for note in notes %}
+<div class="p-3 rounded note-card hover:bg-rose-50 transition">
+{{ note.title }}
+</div>
+{% empty %}
+<p class="text-gray-400">Aucune note</p>
+{% endfor %}
+</div>
+</section>
+
+</div>
 
 </main>
 
 <script>
-// Active indicator (comme planner)
+// ACTIVE SIDEBAR
 function moveActiveIndicator(){
     const items = document.querySelectorAll('.menu-item');
     const indicator = document.getElementById('active-indicator');
@@ -130,8 +218,79 @@ function moveActiveIndicator(){
 }
 
 window.addEventListener('load', moveActiveIndicator);
-window.addEventListener('resize', moveActiveIndicator);
+
+// FULLCALENDAR
+document.addEventListener('DOMContentLoaded', function () {
+
+const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+
+    locale: 'fr',
+    initialView: 'timeGridWeek',
+    height: 500,
+
+    headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: ''
+    },
+
+    slotDuration: '00:30:00',
+    snapDuration: '00:30:00',
+
+    events: '/calendar/events/',
+
+    datesSet() {
+        updateTodayEvents(calendar);
+    },
+
+    eventDidMount() {
+        updateTodayEvents(calendar);
+    }
+});
+
+calendar.render();
+});
+
+// TODAY EVENTS SIDEBAR
+function updateTodayEvents(calendar){
+
+    const box = document.getElementById("todayEvents");
+    if(!box) return;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const events = calendar.getEvents().filter(e =>
+        e.startStr.startsWith(today)
+    );
+
+    box.innerHTML = "";
+
+    if(events.length === 0){
+        box.innerHTML = "<p class='text-gray-400'>Aucun événement</p>";
+        return;
+    }
+
+    events.forEach(ev => {
+
+        const div = document.createElement("div");
+        div.className = "event-card";
+
+        const time = new Date(ev.start).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        div.innerHTML = `
+            <div class="font-semibold text-rose">${ev.title}</div>
+            <div class="text-xs text-gray-500">${time}</div>
+        `;
+
+        box.appendChild(div);
+    });
+}
 </script>
+
 <script src="/static/js/evap-timer.js"></script>
+
 </body>
 </html>
