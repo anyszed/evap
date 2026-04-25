@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'planner',
     'calendar_app',
     'timer',
+    'grades',
 ]
 
 MIDDLEWARE = [

@@ -1,174 +1,235 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Planner - Evap</title>
+<meta charset="UTF-8">
+<title>Planner - Evap</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              rose: '#F472B6',
-              darkrose: '#EC4899',
-            },
-            fontFamily: {
-              sans: ['Poppins', 'sans-serif'],
-              serif: ['Merriweather', 'serif'],
-            }
-          }
-        }
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7',
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Merriweather', 'serif'],
       }
-    </script>
+    }
+  }
+}
+</script>
+
+<style>
+.card {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+
+.soft-hover {
+  transition: 0.15s ease;
+}
+.soft-hover:hover {
+  background: rgba(244,114,182,0.08);
+  transform: scale(1.01);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(244,114,182,0.12);
+  transform: scale(1.05);
+}
+</style>
+
 </head>
 
-<body class="font-sans bg-rose-100 min-h-screen flex">
+<body class="bg-softbg font-sans min-h-screen flex">
 
 <!-- SIDEBAR -->
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-    
-    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
-        Evap
-    </a>
+<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
 
-    <nav class="flex flex-col gap-3 relative">
-    
-        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
-            Notes
-        </a>
+<nav class="flex flex-col gap-2 relative text-sm">
 
-        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
-            Planner
-        </a>
+<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
 
-        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
-            Calendrier
-        </a>
+<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
+<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
+<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
+<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
+<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
 
-        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
-            Timer
-        </a>
-    </nav>
+</nav>
 </aside>
 
-<main class="flex-1 p-8">
+<!-- MAIN -->
+<main class="flex-1 p-10 space-y-10">
 
-    <!-- PROJETS -->
-    <div class="bg-white shadow rounded p-4 mb-8">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-serif text-rose">Projets</h2>
-            <button onclick="openModal('projectModal')" class="bg-rose text-white px-4 py-2 rounded hover:bg-darkrose">+ Ajouter un projet</button>
-        </div>
+<!-- HEADER -->
+<div class="flex justify-between items-center">
+<h1 class="text-3xl font-serif text-darkrose">Planner</h1>
+</div>
 
-        <table class="w-full text-center">
-            <thead>
-                <tr class="border-b">
-                    <th>Nom</th>
-                    <th>Date</th>
-                    <th>Clôturer</th>
-                    <th>Supprimer</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in projects %}
-                <tr onclick="openProjectDetails({{ project.id }})" class="border-b hover:bg-gray-50 cursor-pointer">
-                    <td>{{ project.name }}</td>
-                    <td>{{ project.due_date|date:"d/m/Y" }}</td>
+<!-- PROJECTS -->
+<section class="card p-6 fade-in">
 
-                    <!-- CLÔTURER -->
-                    <td>
-                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'" title="Clôturer projet">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 inline hover:scale-110 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </button>
-                    </td>
+<div class="flex justify-between items-center mb-5">
+<h2 class="text-xl font-serif text-rose">Projets</h2>
 
-                    <!-- SUPPRIMER -->
-                    <td>
-                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'" title="Supprimer projet">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 inline hover:scale-110 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3M10 11v6M14 11v6M5 7l1 14h12l1-14" />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<button onclick="openModal('projectModal')"
+class="bg-rose text-white px-4 py-2 rounded-lg hover:bg-darkrose transition">
++ Ajouter
+</button>
+</div>
 
-    <!-- TÂCHES -->
-    <div class="bg-white shadow rounded p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-serif text-rose">Tâches</h2>
-            <button onclick="openModal('taskModal')" class="bg-rose text-white px-4 py-2 rounded hover:bg-darkrose">+ Ajouter une tâche</button>
-        </div>
+<div class="space-y-2">
 
-        <table class="w-full text-center">
-            <thead>
-                <tr class="border-b">
-                    <th>Nom</th>
-                    <th>Projet</th>
-                    <th>Priorité</th>
-                    <th>Date</th>
-                    <th>Clôturer</th>
-                    <th>Supprimer</th>
-                </tr>
-            </thead>
+<table class="w-full text-left text-sm">
+<thead class="text-gray-500 border-b">
+<tr>
+<th>Nom</th>
+<th>Date</th>
+<th>Statut</th>
+<th></th>
+</tr>
+</thead>
 
-            <tbody>
-                {% for task in tasks %}
-                <tr onclick="openTaskDetails({{ task.id }})" class="border-b hover:bg-gray-50 cursor-pointer">
-                    <td>{{ task.title }}</td>
-                    <td>{% if task.project %}{{ task.project.name }}{% else %}-{% endif %}</td>
+<tbody>
+{% for project in projects %}
+<tr onclick="openProjectDetails({{ project.id }})"
+class="border-b hover:bg-rose-50 cursor-pointer soft-hover">
 
-                    <!-- PRIORITÉ MODERNE -->
-                    <td>
-                        {% if task.priority == 3 %}
-                            <span class="flex items-center justify-center gap-2 text-red-500 font-medium">
-                                <span class="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                                Haute
-                            </span>
-                        {% elif task.priority == 2 %}
-                            <span class="flex items-center justify-center gap-2 text-yellow-500 font-medium">
-                                <span class="w-2.5 h-2.5 bg-yellow-400 rounded-full"></span>
-                                Moyenne
-                            </span>
-                        {% else %}
-                            <span class="flex items-center justify-center gap-2 text-green-500 font-medium">
-                                <span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
-                                Basse
-                            </span>
-                        {% endif %}
-                    </td>
+<td class="py-3 font-medium">{{ project.name }}</td>
+<td>{{ project.due_date|date:"d/m/Y" }}</td>
 
-                    <td>{{ task.due_date|date:"d/m/Y" }}</td>
+<td>
+<span class="badge bg-green-100 text-green-600">Actif</span>
+</td>
 
-                    <!-- CLÔTURER -->
-                    <td>
-                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 inline hover:scale-110 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </button>
-                    </td>
+<td class="flex gap-2 justify-end">
 
-                    <!-- SUPPRIMER -->
-                    <td>
-                        <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 inline hover:scale-110 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3M10 11v6M14 11v6M5 7l1 14h12l1-14" />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
+class="icon-btn text-green-600">
+✔
+</button>
+
+<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
+class="icon-btn text-red-500">
+🗑
+</button>
+
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+</section>
+
+<!-- TASKS -->
+<section class="card p-6 fade-in">
+
+<div class="flex justify-between items-center mb-5">
+<h2 class="text-xl font-serif text-rose">Tâches</h2>
+
+<button onclick="openModal('taskModal')"
+class="bg-rose text-white px-4 py-2 rounded-lg hover:bg-darkrose transition">
++ Ajouter
+</button>
+</div>
+
+<div class="space-y-2">
+
+<table class="w-full text-sm">
+<thead class="text-gray-500 border-b">
+<tr>
+<th>Titre</th>
+<th>Projet</th>
+<th>Priorité</th>
+<th>Date</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+{% for task in tasks %}
+<tr onclick="openTaskDetails({{ task.id }})"
+class="border-b hover:bg-rose-50 cursor-pointer soft-hover">
+
+<td class="py-3 font-medium">{{ task.title }}</td>
+<td>{% if task.project %}{{ task.project.name }}{% else %}-{% endif %}</td>
+
+<td>
+{% if task.priority == 3 %}
+<span class="badge bg-red-100 text-red-600">Haute</span>
+{% elif task.priority == 2 %}
+<span class="badge bg-yellow-100 text-yellow-600">Moyenne</span>
+{% else %}
+<span class="badge bg-green-100 text-green-600">Basse</span>
+{% endif %}
+</td>
+
+<td>{{ task.due_date|date:"d/m/Y" }}</td>
+
+<td class="flex justify-end gap-2">
+
+<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'"
+class="icon-btn text-green-600">
+✔
+</button>
+
+<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'"
+class="icon-btn text-red-500">
+🗑
+</button>
+
+</td>
+
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+</section>
 
 </main>
 
@@ -177,23 +238,32 @@
 {% include "planner/modals/task_modal.html" %}
 
 <script>
-function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+function openModal(id){
+    document.getElementById(id).classList.remove('hidden');
+}
 
+function closeModal(id){
+    document.getElementById(id).classList.add('hidden');
+}
+
+/* sidebar indicator */
 function moveActiveIndicator(){
-    const items=document.querySelectorAll('.menu-item');
-    const indicator=document.getElementById('active-indicator');
-    const path=window.location.pathname;
-    items.forEach(item=>{
-        if(item.dataset.path===path){
-            indicator.style.top=item.offsetTop+'px';
-            indicator.style.height=item.offsetHeight+'px';
+    const items = document.querySelectorAll('.menu-item');
+    const indicator = document.getElementById('active-indicator');
+    const path = window.location.pathname;
+
+    items.forEach(item => {
+        if(item.dataset.path === path){
+            indicator.style.top = item.offsetTop + 'px';
+            indicator.style.height = item.offsetHeight + 'px';
         }
     });
 }
-window.addEventListener('load',moveActiveIndicator);
-window.addEventListener('resize',moveActiveIndicator);
+
+window.addEventListener('load', moveActiveIndicator);
+window.addEventListener('resize', moveActiveIndicator);
 </script>
+
 <script src="/static/js/evap-timer.js"></script>
 </body>
 </html>

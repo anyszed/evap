@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Calculateur - Evap</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7'
+      },
+      fontFamily: {
+        sans: ['Poppins'],
+        serif: ['Merriweather']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+.card {
+  background: white;
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+.card:hover { transform: translateY(-2px); }
+
+.subject-card {
+  border-left: 4px solid #F472B6;
+  transition: 0.2s;
+}
+
+.subject-card:hover {
+  transform: scale(1.01);
+}
+
+input {
+  outline: none;
+  transition: 0.2s;
+  border-radius: 8px;
+}
+
+input:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 2px rgba(244,114,182,0.25);
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(244,114,182,0.15);
+  transform: scale(1.05);
+}
+
+.fade {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+canvas { max-height: 200px; }
+</style>
+
+</head>
+
+<body class="font-sans bg-softbg min-h-screen flex">
+
+<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
+<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
+
+<nav class="flex flex-col gap-2 relative text-sm">
+
+<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
+
+<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
+<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
+<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
+<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
+<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
+
+</nav>
+</aside>
+
+<main class="flex-1 p-10">
+
+<div class="flex justify-between items-center mb-6">
+<h1 class="text-3xl font-serif text-darkrose">Calculateur</h1>
+
+<button onclick="createTable()"
+class="bg-rose text-white px-4 py-2 rounded-xl shadow hover:scale-105 transition">
++ Nouveau tableau
+</button>
+</div>
+
+<div id="tables-container" class="grid grid-cols-2 gap-6"></div>
+
+</main>
+
+<script>
+
+/* ================= CSRF ================= */
+
+function getCSRF() {
+    return "{{ csrf_token }}";
+}
+
+/* ================= API ================= */
+
+async function post(url, body={}) {
+    return fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRF()
+        },
+        body: JSON.stringify(body)
+    }).then(r => r.json());
+}
+
+/* ================= STATE ================= */
+
+let state = { tables: [] };
+
+/* ================= INIT ================= */
+
+async function init() {
+    const res = await fetch(window.location.href);
+    const html = await res.text();
+
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const data = doc.querySelector("#hidden-data");
+
+    state.tables = Array.from(data.querySelectorAll(".table-data")).map(t => ({
+        id: t.dataset.id,
+        name: t.querySelector(".table-name").textContent,
+        subjects: Array.from(t.querySelectorAll(".subject-data")).map(s => ({
+            id: s.dataset.id,
+            name: s.dataset.name,
+            coeff: Number(s.dataset.coeff),
+            grades: Array.from(s.querySelectorAll(".grade-data")).map(g => ({
+                id: g.dataset.id,
+                name: g.dataset.name,
+                value: Number(g.dataset.value),
+                coeff: Number(g.dataset.coeff)
+            }))
+        }))
+    }));
+
+    render();
+}
+
+/* ================= DEBOUNCE ================= */
+
+let timers = {};
+
+function debounce(key, fn) {
+    clearTimeout(timers[key]);
+    timers[key] = setTimeout(fn, 200);
+}
+
+/* ================= LIVE UPDATE ================= */
+
+function updateTableName(id, value) {
+    const t = state.tables.find(x => x.id == id);
+    if (t) t.name = value;
+
+    debounce("t"+id, () =>
+        post(`/grades/update_table/${id}/`, { name: value })
+    );
+
+    calculateAll();
+}
+
+function updateSubject(tableId, subjectId, field, value) {
+    const t = state.tables.find(x => x.id == tableId);
+    const s = t?.subjects.find(x => x.id == subjectId);
+    if (!s) return;
+
+    if (field === "name") s.name = value;
+    if (field === "coeff") s.coeff = Number(value);
+
+    debounce("s"+subjectId, () =>
+        post(`/grades/update_subject/${subjectId}/`, {
+            name: s.name,
+            coeff: s.coeff
+        })
+    );
+
+    calculateAll();
+}
+
+function updateGrade(tableId, subjectId, gradeId, field, value) {
+    const t = state.tables.find(x => x.id == tableId);
+    const s = t?.subjects.find(x => x.id == subjectId);
+    const g = s?.grades.find(x => x.id == gradeId);
+    if (!g) return;
+
+    if (field === "name") g.name = value;
+    if (field === "value") g.value = Number(value);
+    if (field === "coeff") g.coeff = Number(value);
+
+    debounce("g"+gradeId, () =>
+        post(`/grades/update_grade/${gradeId}/`, {
+            name: g.name,
+            value: g.value,
+            coeff: g.coeff
+        })
+    );
+
+    calculateAll();
+}
+
+/* ================= CRUD ================= */
+
+async function createTable() {
+    const res = await post("/grades/create_table/");
+    state.tables.push({ id: res.id, name: res.name, subjects: [] });
+    render();
+}
+
+async function deleteTable(id) {
+    await post(`/grades/delete_table/${id}/`);
+    state.tables = state.tables.filter(t => t.id != id);
+    render();
+}
+
+async function deleteSubject(id) {
+    await post(`/grades/delete_subject/${id}/`);
+    state.tables.forEach(t =>
+        t.subjects = t.subjects.filter(s => s.id != id)
+    );
+    render();
+}
+
+async function deleteGrade(id) {
+    await post(`/grades/delete_grade/${id}/`);
+    state.tables.forEach(t =>
+        t.subjects.forEach(s =>
+            s.grades = s.grades.filter(g => g.id != id)
+        )
+    );
+    render();
+}
+
+async function addSubject(tableId) {
+    const res = await post(`/grades/add_subject/${tableId}/`);
+    const t = state.tables.find(x => x.id == tableId);
+
+    t.subjects.push({
+        id: res.id,
+        name: res.name,
+        coeff: res.coefficient,
+        grades: []
+    });
+
+    render();
+}
+
+async function addGrade(subjectId) {
+    const res = await post(`/grades/add_grade/${subjectId}/`);
+
+    state.tables.forEach(t => {
+        const s = t.subjects.find(x => x.id == subjectId);
+        if (s) s.grades.push({
+            id: res.id,
+            name: "",
+            value: 0,
+            coeff: 1
+        });
+    });
+
+    render();
+}
+
+/* ================= CALCUL + CHART FIX LIVE ================= */
+
+function calculateAll() {
+    document.querySelectorAll(".table-card").forEach(table => {
+
+        let total = 0;
+        let totalCoeff = 0;
+        let labels = [];
+        let values = [];
+
+        table.querySelectorAll(".subject").forEach(subject => {
+
+            let sTotal = 0;
+            let sCoeff = 0;
+
+            subject.querySelectorAll(".grade").forEach(g => {
+                const v = parseFloat(g.querySelector(".grade-value").value) || 0;
+                const c = parseFloat(g.querySelector(".grade-coeff").value) || 0;
+                sTotal += v * c;
+                sCoeff += c;
+            });
+
+            const avg = sCoeff ? sTotal / sCoeff : 0;
+
+            subject.querySelector(".subject-average").innerText = avg.toFixed(2);
+
+            const coeff = Number(subject.querySelector(".subject-coeff")?.value || 1);
+
+            total += avg * coeff;
+            totalCoeff += coeff;
+
+            labels.push(subject.querySelector(".subject-name").value || "Matière");
+            values.push(avg);
+        });
+
+        const global = totalCoeff ? total / totalCoeff : 0;
+        table.querySelector(".global-average").innerText = global.toFixed(2);
+
+        const ctx = table.querySelector(".chart");
+
+        if (table.chartInstance) table.chartInstance.destroy();
+
+        table.chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#F472B6','#EC4899','#FB7185','#F9A8D4','#FBCFE8']
+                }]
+            }
+        });
+    });
+}
+
+/* ================= RENDER ================= */
+
+function render() {
+    const container = document.getElementById("tables-container");
+    container.innerHTML = "";
+
+    state.tables.forEach(t => {
+
+        const div = document.createElement("div");
+        div.className = "card table-card fade";
+
+        div.innerHTML = `
+        <div class="flex justify-between mb-4">
+
+            <input class="text-xl font-bold"
+                value="${t.name}"
+                oninput="updateTableName(${t.id}, this.value)">
+
+            <div class="flex gap-2">
+                <button onclick="addSubject(${t.id})" class="bg-rose text-white px-3 py-1 rounded">+ matière</button>
+                <button onclick="deleteTable(${t.id})" class="bg-red-500 text-white px-3 py-1 rounded">supprimer</button>
+            </div>
+
+        </div>
+
+        <div class="space-y-3">
+
+        ${t.subjects.map(s => `
+            <div class="subject subject-card p-3 rounded">
+
+                <div class="flex gap-2 mb-2">
+
+                    <input class="subject-name border p-1 w-full"
+                        value="${s.name}"
+                        oninput="updateSubject(${t.id}, ${s.id}, 'name', this.value)">
+
+                    <input class="subject-coeff border p-1 w-16"
+                        value="${s.coeff}"
+                        oninput="updateSubject(${t.id}, ${s.id}, 'coeff', this.value)">
+
+                    <button class="icon-btn" onclick="deleteSubject(${s.id})">🗑</button>
+
+                </div>
+
+                ${s.grades.map(g => `
+                    <div class="grade flex gap-2">
+
+                        <input class="border p-1 w-full"
+                            value="${g.name}"
+                            oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'name', this.value)">
+
+                        <input class="grade-value border p-1 w-16"
+                            value="${g.value}"
+                            oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'value', this.value)">
+
+                        <input class="grade-coeff border p-1 w-16"
+                            value="${g.coeff}"
+                            oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'coeff', this.value)">
+
+                        <button class="icon-btn" onclick="deleteGrade(${g.id})">❌</button>
+
+                    </div>
+                `).join("")}
+
+                <button onclick="addGrade(${s.id})" class="text-sm text-rose mt-2">+ note</button>
+
+                <div class="text-xs mt-2 text-gray-500">
+                    Moyenne : <span class="subject-average">0</span>
+                </div>
+
+            </div>
+        `).join("")}
+
+        </div>
+
+        <div class="mt-4 font-bold text-darkrose">
+            Moyenne générale : <span class="global-average">0</span>
+        </div>
+
+        <canvas class="chart mt-4"></canvas>
+        `;
+
+        container.appendChild(div);
+    });
+
+    calculateAll();
+}
+
+init();
+
+</script>
+
+</body>
+</html>

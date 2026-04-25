@@ -9,4 +9,5 @@ urlpatterns = [
     path('notes/', include('notes.urls')),
     path('calendar/', include('calendar_app.urls')),
     path('timer/', include('timer.urls')),
+    path('grades/', include('grades.urls')),
 ]

@@ -105,29 +105,19 @@ tailwind.config = {
 <body class="font-sans bg-rose-100 min-h-screen flex">
 
 <aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-    
-    <a href="/" class="text-2xl font-bold mb-6 font-serif hover:opacity-80 transition">
-        Evap
-    </a>
+<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
 
-    <nav class="flex flex-col gap-3 relative">
-    
-        <a href="/notes/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/notes/">
-            Notes
-        </a>
+<nav class="flex flex-col gap-2 relative text-sm">
 
-        <a href="/planner/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/planner/">
-            Planner
-        </a>
+<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
 
-        <a href="/calendar/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/calendar/">
-            Calendrier
-        </a>
+<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
+<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
+<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
+<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
+<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
 
-        <a href="/timer/" class="menu-item px-3 py-2 rounded font-semibold hover:bg-darkrose transition" data-path="/timer/">
-            Timer
-        </a>
-    </nav>
+</nav>
 </aside>
 
 <main class="flex-1 p-10">
