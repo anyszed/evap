@@ -38,6 +38,10 @@ tailwind.config = {
   box-shadow: 0 12px 40px rgba(0,0,0,0.08);
 }
 
+.project-card {
+  border-left: 4px solid #F472B6;
+}
+
 .soft-hover {
   transition: 0.15s ease;
 }
@@ -63,8 +67,8 @@ tailwind.config = {
 }
 
 .icon-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -75,6 +79,18 @@ tailwind.config = {
 .icon-btn:hover {
   background: rgba(244,114,182,0.12);
   transform: scale(1.05);
+}
+
+.task {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 8px;
+  border-radius:10px;
+}
+
+.task:hover {
+  background: rgba(0,0,0,0.03);
 }
 </style>
 
@@ -100,104 +116,69 @@ tailwind.config = {
 </aside>
 
 <!-- MAIN -->
-<main class="flex-1 p-10 space-y-10">
+<main class="flex-1 p-10 space-y-8">
 
 <!-- HEADER -->
 <div class="flex justify-between items-center">
 <h1 class="text-3xl font-serif text-darkrose">Planner</h1>
-</div>
-
-<!-- PROJECTS -->
-<section class="card p-6 fade-in">
-
-<div class="flex justify-between items-center mb-5">
-<h2 class="text-xl font-serif text-rose">Projets</h2>
 
 <button onclick="openModal('projectModal')"
 class="bg-rose text-white px-4 py-2 rounded-lg hover:bg-darkrose transition">
-+ Ajouter
++ Projet
 </button>
 </div>
 
-<div class="space-y-2">
+<!-- PROJECTS AS CARDS -->
+<section class="space-y-4">
 
-<table class="w-full text-left text-sm">
-<thead class="text-gray-500 border-b">
-<tr>
-<th>Nom</th>
-<th>Date</th>
-<th>Statut</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody>
 {% for project in projects %}
-<tr onclick="openProjectDetails({{ project.id }})"
-class="border-b hover:bg-rose-50 cursor-pointer soft-hover">
 
-<td class="py-3 font-medium">{{ project.name }}</td>
-<td>{{ project.due_date|date:"d/m/Y" }}</td>
+<div class="card project-card p-5 fade-in">
 
-<td>
-<span class="badge bg-green-100 text-green-600">Actif</span>
-</td>
+<!-- CLICK PROJECT AREA -->
+<div onclick="openProjectDetails({{ project.id }})" class="cursor-pointer">
 
-<td class="flex gap-2 justify-end">
+<!-- HEADER PROJECT -->
+<div class="flex justify-between items-center mb-3">
+
+<div>
+<h2 class="text-lg font-serif text-rose">{{ project.name }}</h2>
+<p class="text-xs text-gray-500">
+{{ project.due_date|date:"d/m/Y" }}
+</p>
+</div>
+
+<div class="flex gap-2">
 
 <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
-class="icon-btn text-green-600">
-✔
-</button>
+class="icon-btn text-green-600">✔</button>
 
 <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
-class="icon-btn text-red-500">
-🗑
-</button>
-
-</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+class="icon-btn text-red-500">🗑</button>
 
 </div>
-</section>
+</div>
+
+</div>
 
 <!-- TASKS -->
-<section class="card p-6 fade-in">
+<div class="space-y-1 ml-2">
 
-<div class="flex justify-between items-center mb-5">
-<h2 class="text-xl font-serif text-rose">Tâches</h2>
+{% for task in tasks %}
+{% if task.project_id == project.id %}
 
-<button onclick="openModal('taskModal')"
-class="bg-rose text-white px-4 py-2 rounded-lg hover:bg-darkrose transition">
-+ Ajouter
-</button>
+<div class="task cursor-pointer"
+onclick="openTaskDetails({{ task.id }})">
+
+<div>
+<div class="font-medium text-sm">{{ task.title }}</div>
+<div class="text-xs text-gray-500">
+{{ task.due_date|date:"d/m/Y" }}
+</div>
 </div>
 
-<div class="space-y-2">
+<div class="flex gap-2">
 
-<table class="w-full text-sm">
-<thead class="text-gray-500 border-b">
-<tr>
-<th>Titre</th>
-<th>Projet</th>
-<th>Priorité</th>
-<th>Date</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody>
-{% for task in tasks %}
-<tr onclick="openTaskDetails({{ task.id }})"
-class="border-b hover:bg-rose-50 cursor-pointer soft-hover">
-
-<td class="py-3 font-medium">{{ task.title }}</td>
-<td>{% if task.project %}{{ task.project.name }}{% else %}-{% endif %}</td>
-
-<td>
 {% if task.priority == 3 %}
 <span class="badge bg-red-100 text-red-600">Haute</span>
 {% elif task.priority == 2 %}
@@ -205,30 +186,29 @@ class="border-b hover:bg-rose-50 cursor-pointer soft-hover">
 {% else %}
 <span class="badge bg-green-100 text-green-600">Basse</span>
 {% endif %}
-</td>
-
-<td>{{ task.due_date|date:"d/m/Y" }}</td>
-
-<td class="flex justify-end gap-2">
 
 <button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'"
-class="icon-btn text-green-600">
-✔
-</button>
-
-<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'"
-class="icon-btn text-red-500">
-🗑
-</button>
-
-</td>
-
-</tr>
-{% endfor %}
-</tbody>
-</table>
+class="icon-btn text-green-600">✔</button>
 
 </div>
+
+</div>
+
+{% endif %}
+{% endfor %}
+
+<!-- ADD TASK -->
+<button onclick="openTaskModal({{ project.id }})"
+class="text-sm text-rose mt-2 hover:underline">
++ ajouter tâche
+</button>
+
+</div>
+
+</div>
+
+{% endfor %}
+
 </section>
 
 </main>
@@ -244,6 +224,42 @@ function openModal(id){
 
 function closeModal(id){
     document.getElementById(id).classList.add('hidden');
+}
+
+function openTaskModal(projectId){
+    const modal = document.getElementById("taskModal");
+    modal.classList.remove("hidden");
+
+    const select = modal.querySelector("select[name='project']");
+    if(select){
+        select.value = projectId;
+    }
+}
+
+/* ================= DETAILS ================= */
+
+async function openProjectDetails(id){
+    const res = await fetch(`/planner/api/project/${id}/`);
+    const data = await res.json();
+
+    const modal = document.getElementById("projectModal");
+    modal.classList.remove("hidden");
+
+    modal.querySelector("input[name='name']").value = data.name;
+    modal.querySelector("textarea[name='description']").value = data.description || "";
+    modal.querySelector("input[name='due_date']").value = data.due_date || "";
+}
+
+async function openTaskDetails(id){
+    const res = await fetch(`/planner/api/task/${id}/`);
+    const data = await res.json();
+
+    const modal = document.getElementById("taskModal");
+    modal.classList.remove("hidden");
+
+    modal.querySelector("input[name='title']").value = data.title;
+    modal.querySelector("textarea[name='description']").value = data.description || "";
+    modal.querySelector("input[name='due_date']").value = data.due_date || "";
 }
 
 /* sidebar indicator */
@@ -264,6 +280,5 @@ window.addEventListener('load', moveActiveIndicator);
 window.addEventListener('resize', moveActiveIndicator);
 </script>
 
-<script src="/static/js/evap-timer.js"></script>
 </body>
 </html>
