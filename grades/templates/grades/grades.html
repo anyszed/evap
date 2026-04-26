@@ -120,10 +120,13 @@ class="bg-rose text-white px-4 py-2 rounded-xl shadow hover:scale-105 transition
 
 <script>
 
-/* ================= CSRF ================= */
+/* ================= CSRF (FIX) ================= */
 
 function getCSRF() {
-    return "{{ csrf_token }}";
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
 }
 
 /* ================= API ================= */
@@ -143,31 +146,13 @@ async function post(url, body={}) {
 
 let state = { tables: [] };
 
-/* ================= INIT ================= */
+/* ================= INIT (FIX) ================= */
 
 async function init() {
-    const res = await fetch(window.location.href);
-    const html = await res.text();
+    const res = await fetch("/grades/get_tables/");
+    const data = await res.json();
 
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const data = doc.querySelector("#hidden-data");
-
-    state.tables = Array.from(data.querySelectorAll(".table-data")).map(t => ({
-        id: t.dataset.id,
-        name: t.querySelector(".table-name").textContent,
-        subjects: Array.from(t.querySelectorAll(".subject-data")).map(s => ({
-            id: s.dataset.id,
-            name: s.dataset.name,
-            coeff: Number(s.dataset.coeff),
-            grades: Array.from(s.querySelectorAll(".grade-data")).map(g => ({
-                id: g.dataset.id,
-                name: g.dataset.name,
-                value: Number(g.dataset.value),
-                coeff: Number(g.dataset.coeff)
-            }))
-        }))
-    }));
-
+    state.tables = data.tables;
     render();
 }
 
@@ -294,7 +279,7 @@ async function addGrade(subjectId) {
     render();
 }
 
-/* ================= CALCUL + CHART FIX LIVE ================= */
+/* ================= CALCUL ================= */
 
 function calculateAll() {
     document.querySelectorAll(".table-card").forEach(table => {

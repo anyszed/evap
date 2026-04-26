@@ -1,4 +1,5 @@
 import json
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import GradeTable, Subject, Grade
@@ -105,3 +106,33 @@ def update_grade(request, grade_id):
 
     grade.save()
     return JsonResponse({"ok": True})
+
+def get_tables(request):
+    tables = GradeTable.objects.prefetch_related('subjects__grades')
+
+    return JsonResponse({
+        "tables": [
+            {
+                "id": t.id,
+                "name": t.name,
+                "subjects": [
+                    {
+                        "id": s.id,
+                        "name": s.name,
+                        "coeff": s.coefficient,
+                        "grades": [
+                            {
+                                "id": g.id,
+                                "name": g.name,
+                                "value": g.value,
+                                "coeff": g.coefficient
+                            }
+                            for g in s.grades.all()
+                        ]
+                    }
+                    for s in t.subjects.all()
+                ]
+            }
+            for t in tables
+        ]
+    })
