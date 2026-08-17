@@ -7,6 +7,8 @@
 
 {% block chrome %}{% endblock %}
 
+{% block theme_picker_class %}theme-picker-top-right{% endblock %}
+
 {% block content %}
 
 <div class="desk-mat">
@@ -47,7 +49,7 @@
             <span>{{ note.title|default:note.content|default:"Sans titre"|truncatechars:60 }}</span>
           </button>
           {% empty %}
-          <p class="text-xs" style="color:rgba(92,22,56,.5)">Aucune note pour l'instant.</p>
+          <p class="text-xs" style="color:hsl(var(--brand-h) 61% 22% / .5)">Aucune note pour l'instant.</p>
           {% endfor %}
         </div>
         <button type="button" class="object-add" onclick="openNoteCreate()">
@@ -184,7 +186,7 @@
           <div class="grade-average"><strong id="deskGradeAverage">—</strong><span>/ 20</span></div>
         </div>
         <div class="grade-table" id="deskGradeTable">
-          <div class="grade-row" style="color:rgba(92,22,56,.5);">Chargement…</div>
+          <div class="grade-row" style="color:hsl(var(--brand-h) 61% 22% / .5);">Chargement…</div>
         </div>
       </div>
     </a>
@@ -329,10 +331,10 @@ fetch('/grades/get_tables/')
         const table = data.tables && data.tables[0];
         const tableBox = document.getElementById('deskGradeTable');
         const avgBox = document.getElementById('deskGradeAverage');
-        const DOT_COLORS = ['#F472B6', '#EC4899', '#DB2777', '#C026D3'];
+        const DOT_COLORS = ['var(--c-f472b6)', 'var(--c-ec4899)', 'var(--c-db2777)', '#C026D3'];
 
         if (!table || !table.subjects.length){
-            tableBox.innerHTML = '<div class="grade-row" style="color:rgba(92,22,56,.5)">Aucune note pour l’instant.</div>';
+            tableBox.innerHTML = '<div class="grade-row" style="color:hsl(var(--brand-h) 61% 22% / .5)">Aucune note pour l’instant.</div>';
             return;
         }
 

@@ -262,8 +262,19 @@ function filterTasks(input, projectId){
     const pages = Array.from(document.querySelectorAll('.sheet-page[data-project-page]'));
     if (!tabs.length) return;
 
-    /* couleur d'accent par onglet, dérivée du nom du projet (pas de champ en base) */
-    const PALETTE = ['#F472B6', '#EC4899', '#DB2777', '#E879F9', '#C026D3', '#FB7185'];
+    /* couleur d'accent par onglet, dérivée du nom du projet (pas de champ en base).
+       Écarts de teinte figés (calc(var(--brand-h) + décalage)) par rapport à
+       la couleur d'origine de chaque entrée (F472B6/EC4899/DB2777/E879F9/
+       C026D3/FB7185) : les onglets restent distincts entre eux et suivent le
+       sélecteur de couleur comme le reste du site. */
+    const PALETTE = [
+        'hsl(calc(var(--brand-h) - 1) 86% 70%)',
+        'hsl(var(--brand-h) 81% 60%)',
+        'hsl(calc(var(--brand-h) + 3) 71% 51%)',
+        'hsl(calc(var(--brand-h) - 38) 91% 73%)',
+        'hsl(calc(var(--brand-h) - 37) 69% 49%)',
+        'hsl(calc(var(--brand-h) + 21) 95% 71%)',
+    ];
     function hashColor(str){
         let h = 0;
         for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
