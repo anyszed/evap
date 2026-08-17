@@ -1,0 +1,56 @@
+{% comment %}
+Inline SVG icon set (outline style, 24x24, currentColor stroke) so the app has no
+CDN/icon-font dependency. Usage: {% include "partials/icon.html" with name="trash" cls="w-5 h-5" %}
+{% endcomment %}
+{% if name == "home" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M3.5 11.5 12 4l8.5 7.5"/><path d="M5.5 10v9.5h5v-6h3v6h5V10"/></svg>
+
+{% elif name == "notes" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+
+{% elif name == "planner" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5 11 15l4.5-5.5"/></svg>
+
+{% elif name == "calendar" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8 3v4M16 3v4"/></svg>
+
+{% elif name == "timer" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M10 2.5h4"/><circle cx="12" cy="13.5" r="8"/><path d="M12 13.5V9m0 4.5 3 2"/></svg>
+
+{% elif name == "grades" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M3.5 20h17"/><rect x="5.5" y="12" width="3" height="7"/><rect x="10.5" y="7.5" width="3" height="11.5"/><rect x="15.5" y="4" width="3" height="15"/></svg>
+
+{% elif name == "menu" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>
+
+{% elif name == "x" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M6 6l12 12M18 6 6 18"/></svg>
+
+{% elif name == "plus" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M12 5v14M5 12h14"/></svg>
+
+{% elif name == "check" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M5 13l4 4L19 7"/></svg>
+
+{% elif name == "trash" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M5 7h14M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2m-8.5 0 .8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9L18.5 7"/><path d="M10 11v6M14 11v6"/></svg>
+
+{% elif name == "pin" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M12 21s7-7.1 7-12a7 7 0 1 0-14 0c0 4.9 7 12 7 12z"/><circle cx="12" cy="9" r="2.3"/></svg>
+
+{% elif name == "search" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg>
+
+{% elif name == "chevron-down" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M6 9l6 6 6-6"/></svg>
+
+{% elif name == "arrow-right" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+
+{% elif name == "sparkles" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M12 3v4M12 17v4M4.5 12h4M15.5 12h4M6.5 6.5l2.5 2.5M15 15l2.5 2.5M17.5 6.5 15 9M9 15l-2.5 2.5"/></svg>
+
+{% elif name == "trophy" %}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ cls|default:'w-5 h-5' }}"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v3m-3 4h6m-3-4v4"/></svg>
+
+{% endif %}

@@ -1,299 +1,362 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Dashboard - Evap</title>
+{% extends "base.html" %}
+{% block title %}Evap{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+{% block extrahead %}
+<link rel="stylesheet" href="/static/css/dashboard-desk.css">
+{% endblock %}
 
-<!-- FULLCALENDAR -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+{% block chrome %}{% endblock %}
 
+{% block content %}
+
+<div class="desk-mat">
+
+  <div class="desk-heading">
+    <div>
+      <span class="eyebrow">Mon bureau · {{ today|date:"l" }}</span>
+      <h1>Bonjour<span>.</span></h1>
+      <p>Pour l'amour de ma vie — tout ce qu'il te faut pour avancer, au même endroit.</p>
+    </div>
+    <div class="desk-heading-note">
+      {% include "partials/icon.html" with name="pin" cls="w-4 h-4" %}
+      <span>{{ tasks_today_count }} tâche{{ tasks_today_count|pluralize }} prévue{{ tasks_today_count|pluralize }}<br><strong>pour aujourd'hui</strong></span>
+    </div>
+  </div>
+
+  <div class="desk-grid">
+
+    <!-- 01 BLOC-NOTES -->
+    <section class="desk-object notes-object">
+      <div class="washi-tape"></div>
+      <div class="object-label">
+        <span>01</span>
+        <span>Mes pense-bêtes</span>
+        <button type="button" onclick="openNoteCreate()" aria-label="Ajouter une note">
+          {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+        </button>
+      </div>
+      <div class="notes-paper">
+        <div class="paper-title-row">
+          {% include "partials/icon.html" with name="notes" cls="w-4 h-4" %}
+          <h2>À garder en tête</h2>
+        </div>
+        <div class="note-list">
+          {% for note in notes %}
+          <button type="button" class="note-line" onclick="openNoteEdit({{ note.id }})">
+            <span class="note-dot {{ note.color }}"></span>
+            <span>{{ note.title|default:note.content|default:"Sans titre"|truncatechars:60 }}</span>
+          </button>
+          {% empty %}
+          <p class="text-xs" style="color:rgba(92,22,56,.5)">Aucune note pour l'instant.</p>
+          {% endfor %}
+        </div>
+        <button type="button" class="object-add" onclick="openNoteCreate()">
+          {% include "partials/icon.html" with name="plus" cls="w-3.5 h-3.5" %}
+          Ajouter une note
+        </button>
+      </div>
+    </section>
+
+    <!-- 02 CLASSEUR -->
+    {% if featured_project %}
+    <a href="/planner/" class="desk-object binder-object">
+      <div class="binder-mini-cover">
+        <div class="mini-cover-title">CLASSEUR</div>
+        <div class="mini-rings"><i></i><i></i><i></i></div>
+      </div>
+      <div class="binder-mini-sheet">
+        <div class="object-label">
+          <span>02</span>
+          <span>Classeur</span>
+          {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}
+        </div>
+        <div class="binder-sheet-content">
+          <span class="sheet-tab-mini" style="background: var(--grad-primary);">Projet en cours</span>
+          <h2>{{ featured_project.name }}</h2>
+          <p>{{ featured_project.done_tasks }} tâche{{ featured_project.done_tasks|pluralize }} terminée{{ featured_project.done_tasks|pluralize }} sur {{ featured_project.total_tasks }}</p>
+          <div class="mini-progress"><span style="width: {{ featured_project.percent }}%;"></span></div>
+          <div class="binder-sheet-foot">
+            <span>Échéance</span>
+            <strong>{% if featured_project.due_date %}{{ featured_project.due_date|date:"d/m/Y" }}{% else %}—{% endif %}</strong>
+          </div>
+        </div>
+      </div>
+    </a>
+    {% else %}
+    <a href="/planner/" class="desk-object binder-object">
+      <div class="binder-mini-cover">
+        <div class="mini-cover-title">CLASSEUR</div>
+        <div class="mini-rings"><i></i><i></i><i></i></div>
+      </div>
+      <div class="binder-mini-sheet">
+        <div class="object-label">
+          <span>02</span>
+          <span>Classeur</span>
+          {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}
+        </div>
+        <div class="binder-empty">Aucun projet en cours — ouvre le classeur pour en créer un.</div>
+      </div>
+    </a>
+    {% endif %}
+
+    <!-- 03 CALENDRIER -->
+    <section class="desk-object calendar-object">
+      <div class="washi-tape"></div>
+      <div class="calendar-card">
+        <div class="calendar-head">
+          <a href="/calendar/" aria-label="Calendrier complet">{% include "partials/icon.html" with name="calendar" cls="w-4 h-4" %}</a>
+          <h2>{{ today|date:"F Y" }}</h2>
+          <a href="/calendar/" aria-label="Ouvrir le calendrier">{% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}</a>
+        </div>
+        <div class="calendar-week"><span>lu</span><span>ma</span><span>me</span><span>je</span><span>ve</span><span>sa</span><span>di</span></div>
+        <div class="calendar-days">
+          {% for week in month_weeks %}
+          {% for day in week %}
+          {% if day == 0 %}
+          <span class="outside">·</span>
+          {% elif day == today.day %}
+          <span class="today">{{ day }}</span>
+          {% elif day in event_days %}
+          <span class="has-event">{{ day }}</span>
+          {% else %}
+          <span>{{ day }}</span>
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+        </div>
+        <div class="calendar-event">
+          <span class="event-dot"></span>
+          <div>
+            {% with first_event=today_events.first %}
+            {% if first_event %}
+            <strong>{{ first_event.title }}</strong>
+            <span>Aujourd'hui · {{ first_event.start|date:"H:i" }}</span>
+            {% else %}
+            <strong>Aucun événement</strong>
+            <span>Profite de cette journée</span>
+            {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 TIMER -->
+    <section class="desk-object timer-object">
+      <div class="object-label light-label">
+        <span>04</span>
+        <span>Ma séance</span>
+        <button type="button" onclick="EvapTimer.reset()" aria-label="Réinitialiser">
+          {% include "partials/icon.html" with name="x" cls="w-3.5 h-3.5" %}
+        </button>
+      </div>
+      <div class="timer-inner">
+        <div class="timer-tabs">
+          <button type="button" id="deskTimerFocus" onclick="startDeskPreset(25*60, 'deskTimerFocus')">Focus 25 min</button>
+          <button type="button" id="deskTimerPause" onclick="startDeskPreset(5*60, 'deskTimerPause')">Pause 5 min</button>
+        </div>
+        <div class="timer-ring">
+          <div>
+            <span id="deskTimerDisplay">00:00</span>
+            <small id="deskTimerStatus">prêt à commencer</small>
+          </div>
+        </div>
+        <button type="button" class="timer-button" onclick="toggleDeskTimer()">
+          <span id="deskTimerAction">Je m'y mets</span>
+          {% include "partials/icon.html" with name="arrow-right" cls="w-3.5 h-3.5" %}
+        </button>
+      </div>
+    </section>
+
+    <!-- 05 BULLETIN -->
+    <a href="/grades/" class="desk-object grades-object">
+      <div class="grade-sheet">
+        <div class="object-label">
+          <span>05</span>
+          <span>Mon bulletin</span>
+          {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}
+        </div>
+        <div class="grade-heading">
+          <div>
+            <div class="subject-kicker">{% include "partials/icon.html" with name="grades" cls="w-3.5 h-3.5" %}Le point sur mes notes</div>
+            <h2>Mes résultats</h2>
+          </div>
+          <div class="grade-average"><strong id="deskGradeAverage">—</strong><span>/ 20</span></div>
+        </div>
+        <div class="grade-table" id="deskGradeTable">
+          <div class="grade-row" style="color:rgba(92,22,56,.5);">Chargement…</div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="desk-footer">
+    <span>{% include "partials/icon.html" with name="pin" cls="w-3 h-3" %}Ton bureau est à jour</span>
+    <span>Evap · pour l'amour de ma vie</span>
+    <span>5 outils à portée de main</span>
+  </div>
+
+</div>
+
+<!-- NOTE QUICK MODAL -->
+<div id="deskNoteModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+  <div class="modal-panel paper-dialog p-6 w-[min(440px,92vw)] fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="deskNoteModalTitle" class="text-lg font-serif text-darkrose">Ajouter une pensée</h2>
+      <button type="button" onclick="closeDeskModal('deskNoteModal')" class="icon-btn !w-8 !h-8 !min-w-0 !min-h-0 text-muted" aria-label="Fermer">
+        {% include "partials/icon.html" with name="x" cls="w-4 h-4" %}
+      </button>
+    </div>
+    <input id="deskNoteTitle" class="input mb-3" placeholder="Titre (facultatif)">
+    <textarea id="deskNoteContent" class="input h-28 resize-none" placeholder="Une petite ligne maintenant, une charge mentale en moins…"></textarea>
+    <div class="flex justify-end gap-2 pt-4">
+      <button type="button" onclick="closeDeskModal('deskNoteModal')" class="btn btn-ghost">Annuler</button>
+      <button type="button" id="deskNoteModalSubmit" onclick="saveDeskNote()" class="btn btn-primary">Épingler la note</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extrascripts %}
 <script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rose: '#F472B6',
-        darkrose: '#EC4899',
-        softbg: '#FFF1F7'
-      },
-      fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
-        serif: ['Merriweather', 'serif'],
-      }
+
+/* ================= NOTES (bloc-notes du bureau) ================= */
+
+let deskNoteEditingId = null;
+
+function openDeskModal(id){
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeDeskModal(id){
+    const modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function openNoteCreate(){
+    deskNoteEditingId = null;
+    document.getElementById('deskNoteModalTitle').textContent = 'Ajouter une pensée';
+    document.getElementById('deskNoteModalSubmit').textContent = 'Épingler la note';
+    document.getElementById('deskNoteTitle').value = '';
+    document.getElementById('deskNoteContent').value = '';
+    openDeskModal('deskNoteModal');
+}
+
+async function openNoteEdit(id){
+    const res = await fetch(`/notes/api/${id}/`);
+    const data = await res.json();
+
+    deskNoteEditingId = id;
+    document.getElementById('deskNoteModalTitle').textContent = 'Modifier la note';
+    document.getElementById('deskNoteModalSubmit').textContent = 'Enregistrer';
+    document.getElementById('deskNoteTitle').value = data.title || '';
+    document.getElementById('deskNoteContent').value = data.content || '';
+    openDeskModal('deskNoteModal');
+}
+
+function saveDeskNote(){
+    const title = document.getElementById('deskNoteTitle').value;
+    const content = document.getElementById('deskNoteContent').value;
+
+    const url = deskNoteEditingId ? `/notes/update/${deskNoteEditingId}/` : '/notes/create/';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ title, content })
+    }).then(() => location.reload());
+}
+
+/* ================= TIMER (piloté par le vrai EvapTimer global) ================= */
+
+let deskTimerLastPreset = null;
+
+function setDeskTimerActive(buttonId){
+    document.getElementById('deskTimerFocus').classList.toggle('active', buttonId === 'deskTimerFocus');
+    document.getElementById('deskTimerPause').classList.toggle('active', buttonId === 'deskTimerPause');
+}
+
+function startDeskPreset(seconds, buttonId){
+    deskTimerLastPreset = buttonId;
+    EvapTimer.setMode('countdown');
+    EvapTimer.start(seconds);
+    setDeskTimerActive(buttonId);
+    document.getElementById('deskTimerAction').textContent = 'Souffler un peu';
+}
+
+function toggleDeskTimer(){
+    if (EvapTimer.running){
+        EvapTimer.pause();
+        document.getElementById('deskTimerAction').textContent = 'Je m’y mets';
+    } else if (EvapTimer.elapsed > 0) {
+        EvapTimer.start();
+        document.getElementById('deskTimerAction').textContent = 'Souffler un peu';
+    } else {
+        startDeskPreset(25 * 60, 'deskTimerFocus');
     }
-  }
-}
-</script>
-
-<style>
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  transition: 0.2s;
+function renderDeskTimer(ms){
+    const display = document.getElementById('deskTimerDisplay');
+    const status = document.getElementById('deskTimerStatus');
+    if (!display) return;
+
+    const txt = EvapTimer.format(ms);
+    display.textContent = txt.startsWith('00:') ? txt.slice(3) : txt;
+    status.textContent = EvapTimer.running ? 'en cours' : (ms > 0 ? 'en pause' : 'prêt à commencer');
+
+    if (EvapTimer.running){
+        setDeskTimerActive(deskTimerLastPreset);
+    } else {
+        setDeskTimerActive(null);
+    }
 }
 
-.priority-high {
-  border-left: 5px solid #EC4899;
-}
+EvapTimer.subscribe(renderDeskTimer);
 
-.note-card {
-  border-left: 4px solid #F472B6;
-}
+/* ================= BULLETIN (aperçu du premier tableau réel) ================= */
 
-/* FULLCALENDAR */
-.fc {
-  background: white;
-  border-radius: 16px;
-  padding: 10px;
-}
+fetch('/grades/get_tables/')
+    .then(r => r.json())
+    .then(data => {
+        const table = data.tables && data.tables[0];
+        const tableBox = document.getElementById('deskGradeTable');
+        const avgBox = document.getElementById('deskGradeAverage');
+        const DOT_COLORS = ['#F472B6', '#EC4899', '#DB2777', '#C026D3'];
 
-.fc-toolbar-title {
-  color: #EC4899;
-  font-weight: 600;
-}
-
-.fc-button {
-  background: #F472B6 !important;
-  border: none !important;
-  border-radius: 10px !important;
-}
-
-.fc-button:hover {
-  background: #EC4899 !important;
-}
-
-.fc-event {
-  border: none !important;
-  border-radius: 8px !important;
-}
-
-.fc-day-today {
-  background: #FFF1F7 !important;
-}
-
-/* TODAY EVENTS */
-.event-card {
-  background: white;
-  border-radius: 12px;
-  padding: 10px;
-  border-left: 4px solid #F472B6;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-}
-</style>
-
-</head>
-
-<body class="font-sans bg-softbg min-h-screen flex">
-
-<!-- SIDEBAR -->
-<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
-
-<nav class="flex flex-col gap-2 relative text-sm">
-
-<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
-
-<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
-<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
-<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
-<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
-<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
-
-</nav>
-</aside>
-
-<!-- MAIN -->
-<main class="flex-1 p-10 space-y-8">
-
-<!-- HEADER -->
-<div>
-<h1 class="text-3xl font-serif text-rose">Bienvenue sur Evap...</h1>
-<p class="text-gray-500">Pour l'amour de ma vie</p>
-</div>
-
-<div class="grid grid-cols-3 gap-6">
-
-<!-- CALENDAR -->
-<section class="card col-span-2">
-<h2 class="text-xl font-serif text-rose mb-4">Semaine</h2>
-<div id="calendar"></div>
-</section>
-
-<!-- TODAY EVENTS -->
-<section class="card">
-<h2 class="text-xl font-serif text-rose mb-4">Aujourd’hui</h2>
-
-<div id="todayEvents" class="space-y-2 text-sm">
-<p class="text-gray-400">Chargement...</p>
-</div>
-</section>
-
-<!-- STATS -->
-<section class="card">
-<h2 class="text-xl font-serif text-rose mb-4">Stats</h2>
-
-<div class="space-y-4">
-
-<div>
-<p class="text-sm">Progression</p>
-<div class="w-full bg-gray-200 rounded-full h-3 mt-1">
-<div class="bg-rose h-3 rounded-full"
-     style="width: {{ stats.percent }}%">
-</div>
-</div>
-</div>
-
-<div class="flex justify-between">
-<span>Tâches</span>
-<span>{{ stats.total_tasks }}</span>
-</div>
-
-<div class="flex justify-between">
-<span>Complétées</span>
-<span class="text-green-500">{{ stats.completed_tasks }}</span>
-</div>
-
-<div class="flex justify-between">
-<span>Notes</span>
-<span>{{ stats.total_notes }}</span>
-</div>
-
-</div>
-</section>
-
-<!-- PRIORITIES -->
-<section class="card col-span-2">
-<h2 class="text-xl font-serif text-rose mb-4">Priorités</h2>
-
-<div class="space-y-2">
-{% for task in tasks_priority %}
-<div class="p-3 rounded priority-high shadow-sm hover:bg-rose-50 transition">
-{{ task.title }}
-</div>
-{% empty %}
-<p class="text-gray-400">Aucune tâche</p>
-{% endfor %}
-</div>
-</section>
-
-<!-- NOTES -->
-<section class="card">
-<h2 class="text-xl font-serif text-rose mb-4">Notes</h2>
-
-<div class="space-y-2">
-{% for note in notes %}
-<div class="p-3 rounded note-card hover:bg-rose-50 transition">
-{{ note.title }}
-</div>
-{% empty %}
-<p class="text-gray-400">Aucune note</p>
-{% endfor %}
-</div>
-</section>
-
-</div>
-
-</main>
-
-<script>
-// ACTIVE SIDEBAR
-function moveActiveIndicator(){
-    const items = document.querySelectorAll('.menu-item');
-    const indicator = document.getElementById('active-indicator');
-    const path = window.location.pathname;
-
-    items.forEach(item => {
-        if(item.dataset.path === path){
-            indicator.style.top = item.offsetTop + 'px';
-            indicator.style.height = item.offsetHeight + 'px';
+        if (!table || !table.subjects.length){
+            tableBox.innerHTML = '<div class="grade-row" style="color:rgba(92,22,56,.5)">Aucune note pour l’instant.</div>';
+            return;
         }
-    });
-}
 
-window.addEventListener('load', moveActiveIndicator);
+        let total = 0, totalCoeff = 0, rows = '';
 
-// FULLCALENDAR
-document.addEventListener('DOMContentLoaded', function () {
+        table.subjects.slice(0, 4).forEach((s, i) => {
+            let sTotal = 0, sCoeff = 0;
+            s.grades.forEach(g => { sTotal += g.value * g.coeff; sCoeff += g.coeff; });
+            const avg = sCoeff ? sTotal / sCoeff : 0;
 
-const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+            total += avg * s.coeff;
+            totalCoeff += s.coeff;
 
-    locale: 'fr',
-    initialView: 'timeGridWeek',
-    height: 500,
-
-    headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: ''
-    },
-
-    slotDuration: '00:30:00',
-    snapDuration: '00:30:00',
-
-    events: '/calendar/events/',
-
-    datesSet() {
-        updateTodayEvents(calendar);
-    },
-
-    eventDidMount() {
-        updateTodayEvents(calendar);
-    }
-});
-
-calendar.render();
-});
-
-// TODAY EVENTS SIDEBAR
-function updateTodayEvents(calendar){
-
-    const box = document.getElementById("todayEvents");
-    if(!box) return;
-
-    const today = new Date().toISOString().split("T")[0];
-
-    const events = calendar.getEvents().filter(e =>
-        e.startStr.startsWith(today)
-    );
-
-    box.innerHTML = "";
-
-    if(events.length === 0){
-        box.innerHTML = "<p class='text-gray-400'>Aucun événement</p>";
-        return;
-    }
-
-    events.forEach(ev => {
-
-        const div = document.createElement("div");
-        div.className = "event-card";
-
-        const time = new Date(ev.start).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
+            rows += `<div class="grade-row">
+                <span class="grade-dot" style="background:${DOT_COLORS[i % DOT_COLORS.length]}"></span>
+                <span class="grade-subject">${s.name || 'Matière'}</span>
+                <span class="grade-coef">coef. ${s.coeff}</span>
+                <strong>${avg.toFixed(1).replace('.', ',')}</strong>
+            </div>`;
         });
 
-        div.innerHTML = `
-            <div class="font-semibold text-rose">${ev.title}</div>
-            <div class="text-xs text-gray-500">${time}</div>
-        `;
-
-        box.appendChild(div);
+        tableBox.innerHTML = rows;
+        avgBox.textContent = totalCoeff ? (total / totalCoeff).toFixed(1).replace('.', ',') : '—';
     });
-}
+
 </script>
-
-<script src="/static/js/evap-timer.js"></script>
-
-</body>
-</html>
+{% endblock %}

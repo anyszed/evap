@@ -1,25 +1,32 @@
-<div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded shadow w-96">
-    <h2 class="text-lg font-bold mb-4">Nouvelle tâche</h2>
-    <form method="POST" action="{% url 'planner:create_task' %}">
+<div id="taskModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+  <div class="modal-panel paper-dialog p-6 w-[min(420px,92vw)] fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="taskModalTitle" class="text-lg font-serif text-darkrose">Nouvelle tâche</h2>
+      <button type="button" onclick="closeModal('taskModal')" class="icon-btn !w-8 !h-8 !min-w-0 !min-h-0 text-muted" aria-label="Fermer">
+        {% include "partials/icon.html" with name="x" cls="w-4 h-4" %}
+      </button>
+    </div>
+    <form id="taskForm" method="POST" action="{% url 'planner:create_task' %}" class="space-y-3"
+      data-create-url="{% url 'planner:create_task' %}"
+      data-update-url-template="{% url 'planner:update_task' 0 %}">
       {% csrf_token %}
-      <input type="text" name="title" placeholder="Nom de la tâche" class="w-full mb-2 p-2 border rounded" required>
-      <textarea name="description" placeholder="Description de la tâche" class="w-full mb-2 p-2 border rounded"></textarea>
-      <select name="priority" class="w-full mb-2 p-2 border rounded">
-        <option value="1">Basse</option>
-        <option value="2">Moyenne</option>
-        <option value="3">Haute</option>
+      <input type="text" name="title" placeholder="Nom de la tâche" class="input" required>
+      <textarea name="description" placeholder="Description de la tâche" class="input h-24 resize-none"></textarea>
+      <select name="priority" class="input">
+        <option value="1">Priorité basse</option>
+        <option value="2">Priorité moyenne</option>
+        <option value="3">Priorité haute</option>
       </select>
-      <input type="date" name="due_date" class="w-full mb-4 p-2 border rounded">
-      <select name="project" class="w-full mb-4 p-2 border rounded">
+      <input type="date" name="due_date" class="input">
+      <select name="project" class="input">
         <option value="">Aucun projet</option>
         {% for project in projects %}
           <option value="{{ project.id }}">{{ project.name }}</option>
         {% endfor %}
       </select>
-      <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 border rounded">Annuler</button>
-        <button type="submit" class="px-4 py-2 rounded">Créer</button>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('taskModal')" class="btn btn-ghost">Annuler</button>
+        <button id="taskModalSubmit" type="submit" class="btn btn-primary">Créer</button>
       </div>
     </form>
   </div>

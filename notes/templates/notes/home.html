@@ -1,148 +1,155 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Notes - Evap</title>
+{% extends "base.html" %}
+{% block title %}Notes - Evap{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+{% block extrahead %}
+<link rel="stylesheet" href="/static/css/notes-sticky.css">
+{% endblock %}
 
-<script src="https://cdn.tailwindcss.com"></script>
+{% block content %}
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rose: '#F472B6',
-        darkrose: '#EC4899'
-      },
-      fontFamily: {
-        sans: ['Poppins'],
-        serif: ['Merriweather']
-      }
-    }
-  }
-}
-</script>
-
-</head>
-
-<body class="font-sans bg-rose-100 min-h-screen flex">
-
-<!-- SIDEBAR -->
-<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
-
-<nav class="flex flex-col gap-2 relative text-sm">
-
-<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
-
-<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
-<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
-<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
-<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
-<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
-
-</nav>
-</aside>
-
-<!-- MAIN -->
-<main class="flex-1 p-10">
-
-<h1 class="text-3xl font-serif text-rose mb-6">Mes Notes</h1>
-
-<input id="searchInput"
-oninput="filterNotes()"
-placeholder="Rechercher..."
-class="w-full mb-6 p-3 border rounded-xl">
-
-<div id="notesGrid" class="grid grid-cols-3 gap-8">
-
-<!-- CREATE CARD -->
-<div onclick="openCreateModal()"
-class="h-72 bg-white border-2 border-dashed border-rose rounded-2xl flex items-center justify-center cursor-pointer hover:bg-pink-50 transition">
-<span class="text-6xl text-rose">＋</span>
+<div class="flex items-center justify-between gap-4 flex-wrap">
+  <h1 class="text-4xl font-serif font-bold text-gradient pb-1">Mes Notes</h1>
 </div>
 
-<!-- NOTES -->
-{% for note in notes %}
-<div
-id="note-{{ note.id }}"
-draggable="true"
-ondragstart="dragStart(event)"
-ondragover="dragOver(event)"
-ondrop="dropNote(event)"
-data-id="{{ note.id }}"
-data-title="{{ note.title|default_if_none:''|lower }}"
-onclick="openNote({{ note.id }})"
-class="note-card group h-72 rounded-2xl shadow relative overflow-hidden flex flex-col cursor-pointer
-bg-pink-50 border border-rose/30 hover:-translate-y-1 transition">
-
-<!-- TITLE BAR -->
-<div class="bg-rose text-white px-4 py-2 font-bold min-h-[40px]">
-{% if note.title %}
-{{ note.title }}
-{% endif %}
+<div class="relative max-w-md">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
+    {% include "partials/icon.html" with name="search" cls="w-4 h-4" %}
+  </span>
+  <input id="searchInput"
+    oninput="filterNotes()"
+    placeholder="Rechercher une note..."
+    class="input pl-10">
 </div>
 
-<!-- CONTENT -->
-<div class="p-4 text-sm whitespace-pre-wrap overflow-hidden text-gray-700">
-{{ note.content }}
+<div id="notesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+  <!-- CREATE CARD -->
+  <button onclick="openCreateModal()"
+    class="create-card h-64 flex-col hover:-translate-y-1">
+    {% include "partials/icon.html" with name="plus" cls="w-8 h-8" %}
+    <span class="text-sm font-medium">Nouvelle note</span>
+  </button>
+
+  <!-- PINNED NOTES FIRST -->
+  {% for note in notes %}
+  {% if note.is_pinned %}
+  <div
+    id="note-{{ note.id }}"
+    draggable="true"
+    ondragstart="dragStart(event)"
+    ondragover="dragOver(event)"
+    ondrop="dropNote(event)"
+    data-id="{{ note.id }}"
+    data-title="{{ note.title|default_if_none:''|lower }}"
+    onclick="openNote({{ note.id }})"
+    class="note-card sticky-note group h-64 relative overflow-hidden flex flex-col cursor-pointer
+    {{ note.color }} transition-all duration-300 fade-in">
+
+    <div class="washi-tape"></div>
+
+    <div class="px-5 pt-6 pb-2 flex items-center gap-2">
+      {% include "partials/icon.html" with name="pin" cls="w-3.5 h-3.5 shrink-0 text-darkrose" %}
+      <span class="sticky-note-title truncate">{{ note.title|default:"Sans titre" }}</span>
+    </div>
+
+    <div class="px-5 pb-4 text-sm whitespace-pre-wrap overflow-hidden text-ink/80 flex-1">{{ note.content }}</div>
+
+    <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+      <button onclick="event.stopPropagation(); togglePin({{ note.id }})"
+        class="icon-btn !w-8 !h-8 !min-w-0 !min-h-0 bg-white/90 shadow" aria-label="Désépingler">
+        {% include "partials/icon.html" with name="pin" cls="w-4 h-4" %}
+      </button>
+      <button onclick="event.stopPropagation(); deleteNote({{ note.id }})"
+        class="icon-btn icon-btn-danger !w-8 !h-8 !min-w-0 !min-h-0 bg-white/90 shadow" aria-label="Supprimer la note">
+        {% include "partials/icon.html" with name="trash" cls="w-4 h-4" %}
+      </button>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+
+  <!-- OTHER NOTES -->
+  {% for note in notes %}
+  {% if not note.is_pinned %}
+  <div
+    id="note-{{ note.id }}"
+    draggable="true"
+    ondragstart="dragStart(event)"
+    ondragover="dragOver(event)"
+    ondrop="dropNote(event)"
+    data-id="{{ note.id }}"
+    data-title="{{ note.title|default_if_none:''|lower }}"
+    onclick="openNote({{ note.id }})"
+    class="note-card sticky-note group h-64 relative overflow-hidden flex flex-col cursor-pointer
+    {{ note.color }} transition-all duration-300 fade-in">
+
+    <div class="washi-tape"></div>
+
+    {% if note.title %}
+    <div class="px-5 pt-6 pb-2">
+      <span class="sticky-note-title truncate block">{{ note.title }}</span>
+    </div>
+    {% else %}
+    <div class="pt-6"></div>
+    {% endif %}
+
+    <div class="px-5 pb-4 text-sm whitespace-pre-wrap overflow-hidden text-ink/80 flex-1">{{ note.content }}</div>
+
+    <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+      <button onclick="event.stopPropagation(); togglePin({{ note.id }})"
+        class="icon-btn !w-8 !h-8 !min-w-0 !min-h-0 bg-white/90 shadow text-muted" aria-label="Épingler">
+        {% include "partials/icon.html" with name="pin" cls="w-4 h-4" %}
+      </button>
+      <button onclick="event.stopPropagation(); deleteNote({{ note.id }})"
+        class="icon-btn icon-btn-danger !w-8 !h-8 !min-w-0 !min-h-0 bg-white/90 shadow" aria-label="Supprimer la note">
+        {% include "partials/icon.html" with name="trash" cls="w-4 h-4" %}
+      </button>
+    </div>
+  </div>
+  {% endif %}
+  {% empty %}
+  <div class="col-span-full empty-state">
+    <div class="empty-state-icon">{% include "partials/icon.html" with name="notes" cls="w-8 h-8 text-rose" %}</div>
+    <p>Aucune note pour l'instant — clique sur "Nouvelle note" pour commencer.</p>
+  </div>
+  {% endfor %}
+
 </div>
 
-<!-- DELETE -->
-<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition">
-<button onclick="event.stopPropagation(); deleteNote({{ note.id }})"
-class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow hover:bg-red-50 transition">
-🗑
-</button>
-</div>
+<!-- EDIT POPUP -->
+<div id="notePopup" class="fixed inset-0 hidden items-center justify-center modal-overlay z-50">
+  <div class="modal-panel paper-dialog w-[min(650px,92vw)] p-6 flex flex-col fade-in">
 
-</div>
-{% endfor %}
+    <input id="popupTitle" class="input text-lg font-semibold mb-3" placeholder="Titre">
+    <textarea id="popupContent" class="input h-64 whitespace-pre-wrap resize-none"></textarea>
 
-</div>
-</main>
+    <div class="flex justify-end gap-3 mt-4">
+      <button onclick="closePopup()" class="btn btn-ghost">Fermer</button>
+      <button onclick="saveNote()" class="btn btn-primary">Enregistrer</button>
+    </div>
 
-<!-- POPUP -->
-<div id="notePopup"
-class="fixed inset-0 hidden items-center justify-center bg-black/50">
-
-<div class="bg-white w-[650px] p-6 rounded-xl flex flex-col">
-
-<input id="popupTitle"
-class="text-xl font-bold mb-3 border p-2 rounded">
-
-<textarea id="popupContent"
-class="h-64 border p-2 rounded whitespace-pre-wrap"></textarea>
-
-<div class="flex justify-end gap-3 mt-4">
-<button onclick="closePopup()" class="px-4 py-2 border rounded">Fermer</button>
-<button onclick="saveNote()" class="px-4 py-2 bg-rose text-white rounded">Enregistrer</button>
-</div>
-
-</div>
+  </div>
 </div>
 
 <!-- CREATE MODAL -->
-<div id="createNoteModal"
-class="fixed inset-0 hidden items-center justify-center bg-black/40"
-onclick="closeCreateModal()">
+<div id="createNoteModal" class="fixed inset-0 hidden items-center justify-center modal-overlay z-50" onclick="closeCreateModal()">
+  <div class="modal-panel paper-dialog w-[min(500px,92vw)] p-6 fade-in" onclick="event.stopPropagation()">
 
-<div class="bg-white w-[500px] p-6 rounded-xl"
-onclick="event.stopPropagation()">
+    <h2 class="text-lg font-serif text-darkrose mb-4">Nouvelle note</h2>
+    <input id="newNoteTitle" class="input mb-3" placeholder="Titre">
+    <textarea id="newNoteContent" class="input h-40 resize-none" placeholder="Écris quelque chose..."></textarea>
 
-<input id="newNoteTitle" class="w-full p-2 border mb-3" placeholder="Titre">
-<textarea id="newNoteContent" class="w-full h-40 p-2 border"></textarea>
+    <div class="flex justify-end gap-3 mt-4">
+      <button onclick="closeCreateModal()" class="btn btn-ghost">Annuler</button>
+      <button onclick="createNote()" class="btn btn-primary">Créer</button>
+    </div>
 
-<div class="flex justify-end gap-3 mt-4">
-<button onclick="closeCreateModal()" class="px-3 py-2 border">Annuler</button>
-<button onclick="createNote()" class="px-3 py-2 bg-rose text-white">Créer</button>
+  </div>
 </div>
 
-</div>
-</div>
+{% endblock %}
 
+{% block extrascripts %}
 <script>
 
 let currentNoteId = null;
@@ -236,6 +243,14 @@ document.getElementById(`note-${id}`)?.remove();
 });
 }
 
+/* PIN */
+function togglePin(id){
+fetch(`/notes/pin/${id}/`, {
+method: "POST",
+headers: {"X-CSRFToken": "{{ csrf_token }}"}
+}).then(() => location.reload());
+}
+
 /* CREATE */
 function createNote(){
 fetch("/notes/create/", {
@@ -272,6 +287,4 @@ document.getElementById("createNoteModal").classList.remove("flex");
 }
 
 </script>
-<script src="/static/js/evap-timer.js"></script>
-</body>
-</html>
+{% endblock %}

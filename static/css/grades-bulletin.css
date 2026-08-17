@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Calculateur "bulletin" — propre à cette page. Reprend le langage visuel de
+   l'objet 05 du bureau d'accueil (papier, marge colorée, titres imprimés)
+   appliqué à chaque tableau. Le rendu est généré en JS (grades.html
+   render()) : seules les classes décoratives changent, tous les sélecteurs
+   utilisés par calculateAll() restent identiques.
+
+   Passe de raffinement (maquette classeur-planner/, page /bulletin) :
+   ruban "Bulletin scolaire", tampon de moyenne incliné, puce colorée par
+   matière (cycle CSS nth-child, décoratif) et barre d'impact par matière
+   (largeur posée par calculateAll() dans grades.html, juste à côté du
+   calcul existant de la moyenne — aucun sélecteur .subject/.grade/... ne
+   change). Pas de texte ajouté au-delà des libellés fonctionnels.
+   ========================================================================== */
+
+.bulletin-sheet {
+  background: var(--classeur-paper);
+  position: relative;
+  padding: 34px 22px 20px 30px !important;
+  overflow: hidden;
+}
+.bulletin-sheet::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grad-primary);
+  opacity: .6;
+}
+.bulletin-sheet::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, transparent 50%, #F3E6ED 50%);
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   En-tête de page (report-head) — reprend le report-head/report-ribbon de
+   la maquette : un seul en-tête éditorial pour toute la page, au-dessus
+   des tableaux (Evap autorise plusieurs "bulletins", contrairement à la
+   maquette qui n'en a qu'un — chaque tableau garde sa propre carte).
+   ------------------------------------------------------------------------- */
+.report-head-frame {
+  position: relative;
+  background: var(--classeur-paper);
+  border-radius: 4px;
+  padding: 38px 32px 26px;
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.report-head-frame::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #EC4899;
+  opacity: .45;
+}
+
+.report-ribbon {
+  display: flex;
+  align-items: center;
+  color: #EC4899;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 9px;
+  font-weight: 700;
+  margin: 0 0 22px 12px;
+}
+
+.report-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-left: 12px;
+}
+.report-head h1 {
+  font-family: 'Merriweather', serif;
+  font-size: clamp(26px, 3.6vw, 36px);
+  letter-spacing: -.02em;
+  color: #5C1638;
+  margin: 0;
+}
+
+.brass-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #7A2048;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 11px 16px;
+  border-radius: 4px;
+  box-shadow: 0 8px 18px -6px rgba(122, 30, 75, .45);
+  flex-shrink: 0;
+  transition: background .15s ease, transform .15s ease;
+}
+.brass-button:hover { background: #5C1638; transform: translateY(-1px); }
+
+@media (max-width: 640px) {
+  .report-head-frame { padding: 28px 18px 22px; }
+  .report-head { display: block; }
+  .brass-button { margin-top: 18px; }
+}
+
+.bulletin-header {
+  padding-left: 14px;
+}
+.bulletin-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 9px;
+  color: rgba(122, 30, 75, .5);
+}
+.bulletin-kicker svg { color: var(--classeur-ring); }
+.bulletin-title-input {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #5C1638;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+.bulletin-title-input:focus { box-shadow: none !important; }
+
+.bulletin-average {
+  text-align: center;
+  color: #9B6E37;
+  flex-shrink: 0;
+  border: 1px solid var(--classeur-ring);
+  border-radius: 4px;
+  padding: 8px 14px;
+  transform: rotate(2deg);
+  background: rgba(255, 255, 255, .5);
+}
+.bulletin-average .global-average {
+  font-family: 'Merriweather', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.bulletin-average span.bulletin-average-label {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(122, 30, 75, .5);
+  margin-top: 2px;
+}
+
+.subject-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #EC4899;
+}
+.bulletin-subject:nth-child(4n+2) .subject-dot { background: #C9A15B; }
+.bulletin-subject:nth-child(4n+3) .subject-dot { background: #8FAFC0; }
+.bulletin-subject:nth-child(4n+4) .subject-dot { background: #A8B89F; }
+
+.subject-impact-bar {
+  height: 4px;
+  border-radius: 8px;
+  background: #F3E6ED;
+  overflow: hidden;
+  margin: 0 0 10px;
+}
+.subject-impact-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+  background: var(--grad-primary);
+  transition: width .3s ease;
+  width: 0%;
+}
+
+.bulletin-subject {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #F3E6ED !important;
+  border-radius: 0 !important;
+  padding: 10px 0 !important;
+}
+.bulletin-subject:last-child { border-bottom: 0 !important; }
+
+.bulletin-subject .subject-name {
+  font-family: 'Merriweather', serif;
+  font-weight: 600;
+  color: #5C1638;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px dashed rgba(157, 23, 77, .25) !important;
+  border-radius: 0 !important;
+  padding: 2px 0 !important;
+}
+
+.bulletin-grade-row input {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid #F3E6ED !important;
+  border-radius: 0 !important;
+}

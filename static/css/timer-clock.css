@@ -1,0 +1,195 @@
+/* ==========================================================================
+   Timer "chronomètre à anneau" — propre à cette page. Reprend le langage
+   visuel de l'objet 04 du bureau d'accueil (fond "toile" rose foncé, anneau
+   doré, chiffres imprimés) agrandi en pièce centrale. IDs/logique JS de
+   timer.html inchangés — uniquement l'habillage.
+
+   Passe de raffinement (maquette classeur-planner/, page /timer) : le
+   cadran devient une vraie horloge analogique décorative (chiffres,
+   aiguilles fixes, crochet laiton en haut), et 3 raccourcis de durée
+   réutilisent EvapTimer comme le fait déjà le bureau d'accueil
+   (`EvapTimer.start(min*60)`). Pas de texte ajouté au-delà des libellés
+   fonctionnels déjà présents (Chrono/Minuteur, Start/Pause/Reset).
+   ========================================================================== */
+
+.timer-desk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.timer-face {
+  background: var(--classeur-cover);
+  color: #FBE4EF;
+  border-radius: 26px;
+  padding: 44px 32px;
+  box-shadow: var(--shadow-ambient);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.timer-face::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -90px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Crochet laiton, comme un vrai réveil suspendu */
+.timer-face::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 14px;
+  background: var(--classeur-ring);
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 -3px 0 #8A6B37;
+}
+
+.timer-mode-tabs {
+  display: inline-flex;
+  background: rgba(255, 255, 255, .12);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+  margin-bottom: 34px;
+}
+
+.timer-mode-tabs .btn {
+  background: transparent;
+  color: #F0B8D2;
+  box-shadow: none;
+  border: 0;
+  padding: 8px 18px;
+}
+.timer-mode-tabs .btn:hover { background: rgba(255, 255, 255, .1); color: #fff; transform: none; }
+.timer-mode-tabs .btn.btn-active {
+  background: var(--classeur-ring) !important;
+  color: #3A0E24 !important;
+  box-shadow: none;
+}
+
+.timer-ring-face {
+  width: min(58vw, 300px);
+  height: min(58vw, 300px);
+  border: 1px solid rgba(201, 161, 91, .55);
+  border-radius: 50%;
+  margin: 0 auto 34px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.timer-ring-face::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px dashed rgba(240, 184, 210, .3);
+  border-radius: 50%;
+}
+
+.clock-mark {
+  position: absolute;
+  font-family: 'Merriweather', serif;
+  font-size: 13px;
+  color: rgba(251, 228, 239, .55);
+}
+.mark-12 { top: 20px; left: 50%; transform: translateX(-50%); }
+.mark-3 { right: 22px; top: 50%; transform: translateY(-50%); }
+.mark-6 { bottom: 18px; left: 50%; transform: translateX(-50%); }
+.mark-9 { left: 22px; top: 50%; transform: translateY(-50%); }
+
+.clock-hand {
+  position: absolute;
+  background: rgba(251, 228, 239, .5);
+  width: 3px;
+  border-radius: 4px;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: bottom;
+  z-index: 0;
+}
+.hour-hand { height: 28%; transform: translateX(-50%) rotate(35deg); }
+.minute-hand { height: 38%; width: 2px; background: var(--classeur-ring); transform: translateX(-50%) rotate(140deg); }
+.clock-center {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--classeur-ring);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.timer-presets {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.timer-presets button {
+  border: 1px solid rgba(201, 161, 91, .5);
+  background: transparent;
+  color: #F0B8D2;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  transition: background .15s ease, color .15s ease;
+}
+.timer-presets button:hover {
+  background: var(--classeur-ring);
+  color: #3A0E24;
+}
+
+.timer-display {
+  font-family: 'Merriweather', serif;
+  font-size: clamp(40px, 7vw, 56px);
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: #FBE4EF;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+}
+
+.timer-controls .btn-ghost {
+  background: transparent;
+  color: #F0B8D2;
+  border-color: rgba(240, 184, 210, .4);
+  box-shadow: none;
+}
+.timer-controls .btn-ghost:hover { background: rgba(255, 255, 255, .08); border-color: var(--classeur-ring); color: #fff; }
+
+.timer-controls .btn-primary {
+  background: var(--classeur-ring);
+  color: #3A0E24;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .4);
+}
+.timer-controls .btn-primary:hover { filter: brightness(1.08); }
+
+.timer-controls .active-control {
+  background: var(--classeur-ring) !important;
+  color: #3A0E24 !important;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .4) !important;
+}
+
+.timer-input {
+  background: rgba(255, 255, 255, .9) !important;
+  border-color: rgba(255, 255, 255, .5) !important;
+}

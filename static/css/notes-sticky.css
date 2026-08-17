@@ -1,0 +1,41 @@
+/* ==========================================================================
+   Bloc-notes "pense-bêtes" — propre à cette page. Reprend le langage visuel
+   de l'objet 01 du bureau d'accueil (papier collé, ruban adhésif) appliqué
+   à une grille de post-it indépendants (le drag & drop exige des cartes
+   individuelles, pas une seule feuille comme la miniature du bureau).
+   ========================================================================== */
+
+.sticky-note {
+  border-radius: 3px 3px 10px 10px;
+  box-shadow: 0 10px 22px -6px rgba(122, 30, 75, .28), 0 2px 6px rgba(122, 30, 75, .12);
+}
+
+.sticky-note:nth-child(3n+1) { transform: rotate(-2.4deg); }
+.sticky-note:nth-child(3n+2) { transform: rotate(1.8deg); }
+.sticky-note:nth-child(3n)   { transform: rotate(-1.1deg); }
+
+.sticky-note:hover { transform: translateY(-4px) rotate(0deg) scale(1.015); }
+
+.sticky-note .washi-tape {
+  position: absolute;
+  width: 74px;
+  height: 20px;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(201, 161, 91, .55);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.sticky-note-title {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #5C1638;
+}
+
+.create-sticky {
+  border-radius: 10px;
+}

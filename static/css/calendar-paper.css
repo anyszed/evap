@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Calendrier "papier" — propre à cette page. Reprend la composition de la
+   page /agenda de la maquette classeur-planner (client/src/index.css +
+   pages/Workspace.tsx : AgendaPage) : ruban vertical, titre serif, tampon
+   "semaine n°", grille de jours. Seules les couleurs changent (forêt/bois/
+   laiton → rose Evap, laiton `--classeur-ring` gardé comme accent métal).
+   Le vrai FullCalendar (vues, drag&drop, récurrence, modales) reste
+   inchangé — uniquement son propre chrome (barre d'outils, cases) est
+   repeint pour se fondre dans la page au lieu de ressembler à un widget
+   par-dessus. Pas de texte ajouté au-delà des libellés fonctionnels
+   (le titre de page et le numéro de semaine réel).
+   ========================================================================== */
+
+.calendar-paper-frame {
+  position: relative;
+  background: var(--classeur-paper);
+  border-radius: 4px;
+  padding: 40px 48px 28px 92px;
+  box-shadow: var(--shadow-ambient);
+  overflow: hidden;
+}
+
+.calendar-paper-frame .washi-tape {
+  position: absolute;
+  width: 100px;
+  height: 24px;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(201, 161, 91, .55);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Pli de coin, comme une vraie feuille posée sur le bureau */
+.calendar-paper-frame::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, transparent 50%, #F3E6ED 50%);
+  pointer-events: none;
+}
+
+/* Filet de marge, aligné avec le ruban vertical */
+.calendar-paper-frame::before {
+  content: "";
+  position: absolute;
+  left: 66px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #EC4899;
+  opacity: .45;
+  pointer-events: none;
+}
+
+.agenda-ribbon {
+  position: absolute;
+  top: 92px;
+  left: 14px;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  display: flex;
+  align-items: center;
+  color: var(--classeur-ring);
+  text-transform: uppercase;
+  letter-spacing: .24em;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* -------------------------------------------------------------------------
+   En-tête (titre + tampon "semaine n°")
+   ------------------------------------------------------------------------- */
+.agenda-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.agenda-head h1 {
+  font-family: 'Merriweather', serif;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -.02em;
+  color: #5C1638;
+  margin: 0;
+}
+
+.agenda-stamp {
+  border: 1px solid var(--classeur-ring);
+  color: #9B6E37;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 15px;
+  transform: rotate(3deg);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  background: rgba(255, 255, 255, .55);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.agenda-stamp strong {
+  font-family: 'Merriweather', serif;
+  font-size: 19px;
+  letter-spacing: 0;
+  color: #7A2048;
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------------------
+   FullCalendar repeint pour se fondre dans la feuille (fond neutre, la
+   barre d'outils devient une ligne de contrôle sobre plutôt qu'un widget)
+   ------------------------------------------------------------------------- */
+.calendar-paper-frame .fc {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin-top: 32px;
+}
+
+.calendar-paper-frame .fc-toolbar {
+  border-top: 1px solid #F3E6ED;
+  border-bottom: 1px solid #F3E6ED;
+  padding: 13px 0 !important;
+  margin: 0 0 4px !important;
+}
+
+.calendar-paper-frame .fc-toolbar-title {
+  font-family: 'Merriweather', serif;
+  font-size: 20px !important;
+  color: #5C1638 !important;
+  font-weight: 700 !important;
+}
+
+.calendar-paper-frame .fc-button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #9B7E89 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: .1em !important;
+  padding: 6px 9px !important;
+  border-radius: 6px !important;
+}
+.calendar-paper-frame .fc-button:hover {
+  color: #7A2048 !important;
+  background: rgba(244, 114, 182, .1) !important;
+  transform: none !important;
+}
+.calendar-paper-frame .fc-button-primary:not(:disabled).fc-button-active,
+.calendar-paper-frame .fc-button-primary:not(:disabled):active {
+  background: rgba(244, 114, 182, .16) !important;
+  color: #DB2777 !important;
+  filter: none !important;
+}
+
+.calendar-paper-frame .fc-col-header-cell-cushion {
+  font-family: 'Merriweather', serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 10px;
+  color: #A2917E;
+  padding: 8px 0;
+}
+
+.calendar-paper-frame .fc-daygrid-day-frame { padding-top: 2px; }
+.calendar-paper-frame .fc-daygrid-day-number {
+  font-family: 'Merriweather', serif;
+  font-size: 15px;
+  color: #5E4650;
+  padding: 6px 8px;
+}
+.calendar-paper-frame .fc-day-other .fc-daygrid-day-number { color: #C6B7BE; }
+
+.calendar-paper-frame .fc-daygrid-day:hover .fc-daygrid-day-frame {
+  background: rgba(244, 114, 182, .06);
+  transition: background .18s ease;
+}
+
+.calendar-paper-frame .fc-daygrid-event {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-left: 2px solid #EC4899 !important;
+  border-radius: 0 !important;
+  color: #9A5F73 !important;
+  font-size: 10.5px;
+  padding-left: 5px;
+  margin-top: 3px !important;
+}
+.calendar-paper-frame .fc-daygrid-event .fc-event-time { color: #C9A15B; font-weight: 700; }
+
+/* "Aujourd'hui" en pastille pleine plutôt qu'un fond de case teinté */
+.calendar-paper-frame .fc-daygrid-day.fc-day-today {
+  background: transparent !important;
+}
+.calendar-paper-frame .fc-daygrid-day.fc-day-today .fc-daygrid-day-number,
+.calendar-paper-frame .fc-timegrid-col.fc-day-today .fc-col-header-cell-cushion {
+  background: #DB2777;
+  color: #fff;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+}
+
+@media (max-width: 700px) {
+  .calendar-paper-frame { padding: 26px 18px 20px 24px; }
+  .agenda-ribbon { display: none; }
+  .calendar-paper-frame::before { display: none; }
+  .agenda-head { display: block; }
+  .agenda-stamp { margin-top: 16px; width: max-content; }
+}

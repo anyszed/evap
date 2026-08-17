@@ -1,70 +1,60 @@
-from django.shortcuts import render
-from datetime import datetime, timedelta
+import calendar as cal_module
+from datetime import date
 
-from planner.models import Task
+from django.db.models import Count, Q
+from django.shortcuts import render
+
+from planner.models import Project, Task
 from notes.models import Note
-from calendar_app.models import Event  # 🔥 IMPORTANT
+from calendar_app.models import Event
 
 
 def home(request):
-
-    today = datetime.today()
-    start_week = today - timedelta(days=today.weekday())
+    today = date.today()
 
     # -------------------------
-    # WEEK DAYS
+    # NOTES (dernières, réellement visibles - is_deleted manquait avant)
     # -------------------------
-    week_days = []
-    for i in range(7):
-        d = start_week + timedelta(days=i)
-        week_days.append({
-            "name": d.strftime("%a"),
-            "date": d.date()
-        })
+    notes = Note.objects.filter(is_deleted=False).order_by('-is_pinned', 'position')[:3]
 
     # -------------------------
-    # HOURS
+    # PROJET VEDETTE (classeur) - le plus proche de son échéance
     # -------------------------
-    hours = list(range(8, 20))
+    featured_project = Project.objects.filter(done=False).annotate(
+        total_tasks=Count("task", distinct=True),
+        done_tasks=Count("task", filter=Q(task__done=True), distinct=True),
+    ).order_by('due_date').first()
+
+    if featured_project:
+        featured_project.percent = round(
+            featured_project.done_tasks / featured_project.total_tasks * 100
+        ) if featured_project.total_tasks else 0
 
     # -------------------------
-    # EVENTS (🔥 ICI LE FIX)
+    # CALENDRIER (mini-grille du mois en cours)
     # -------------------------
-    events = Event.objects.filter(
-        start__date__gte=start_week.date(),
-        start__date__lte=(start_week + timedelta(days=6)).date()
+    cal_module.setfirstweekday(cal_module.MONDAY)
+    month_weeks = cal_module.monthcalendar(today.year, today.month)
+
+    event_days = set(
+        Event.objects.filter(
+            start__year=today.year, start__month=today.month
+        ).values_list('start__day', flat=True)
     )
 
-    # -------------------------
-    # TASKS
-    # -------------------------
-    tasks_priority = Task.objects.filter(priority=3)
+    today_events = Event.objects.filter(start__date=today).order_by('start')
 
     # -------------------------
-    # NOTES
+    # TÂCHES DUES AUJOURD'HUI (pense-bête d'en-tête)
     # -------------------------
-    notes = Note.objects.all().order_by('position')[:5]
-
-    # -------------------------
-    # STATS
-    # -------------------------
-    total_tasks = Task.objects.count()
-    completed_tasks = Task.objects.filter(done=True).count()
-
-    percent = int((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
-
-    stats = {
-        "total_tasks": total_tasks,
-        "completed_tasks": completed_tasks,
-        "total_notes": Note.objects.count(),
-        "percent": percent
-    }
+    tasks_today_count = Task.objects.filter(done=False, due_date=today).count()
 
     return render(request, "dashboard/home.html", {
-        "week_days": week_days,
-        "hours": hours,
-        "events": events,  # 🔥 IMPORTANT
-        "tasks_priority": tasks_priority,
         "notes": notes,
-        "stats": stats
+        "featured_project": featured_project,
+        "month_weeks": month_weeks,
+        "event_days": event_days,
+        "today_events": today_events,
+        "today": today,
+        "tasks_today_count": tasks_today_count,
     })

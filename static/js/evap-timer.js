@@ -1,5 +1,8 @@
 // =========================
-// EVAP GLOBAL TIMER (PERSISTENT ACROSS PAGES)
+// EVAP GLOBAL TIMER (persistant entre les pages)
+// Source unique de vérité : la page /timer/ et le mini-widget flottant
+// pilotent tous les deux cet objet plutôt que d'avoir chacun leur propre
+// horloge (c'était le cas avant et ça pouvait désynchroniser l'affichage).
 // =========================
 
 const EvapTimer = {
@@ -13,6 +16,7 @@ const EvapTimer = {
 
   interval: null,
   widget: null,
+  listeners: [],
 
   // -------------------------
   // INIT
@@ -21,9 +25,22 @@ const EvapTimer = {
     this.load();
     this.createWidget();
     this.loop();
-
-    // IMPORTANT: restore display immediately
     this.updateUI(this.getTime());
+  },
+
+  // -------------------------
+  // SUBSCRIBE (used by the /timer/ page to sync its own display/buttons)
+  // -------------------------
+  subscribe(fn) {
+    this.listeners.push(fn);
+    fn(this.getTime());
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== fn);
+    };
+  },
+
+  notify(ms) {
+    this.listeners.forEach(fn => fn(ms));
   },
 
   // -------------------------
@@ -63,6 +80,8 @@ const EvapTimer = {
     if (this.mode === "countdown") {
       return this.duration - (Date.now() - this.startTime);
     }
+
+    return this.elapsed;
   },
 
   // -------------------------
@@ -70,18 +89,17 @@ const EvapTimer = {
   // -------------------------
   loop() {
     this.interval = setInterval(() => {
-
-      if (!this.running) return;
-
       let t = this.getTime();
 
-      if (this.mode === "countdown" && t <= 0) {
+      if (this.running && this.mode === "countdown" && t <= 0) {
         this.reset();
         t = 0;
       }
 
       this.updateUI(t);
-      this.save();
+      this.notify(t);
+
+      if (this.running) this.save();
 
     }, 250);
   },
@@ -100,35 +118,72 @@ const EvapTimer = {
   },
 
   // -------------------------
-  // UI
+  // CONTROLS
+  // -------------------------
+  setMode(mode) {
+    this.reset();
+    this.mode = mode;
+    this.save();
+  },
+
+  start(countdownSeconds) {
+    if (this.running) return;
+    this.running = true;
+
+    if (this.mode === "countdown") {
+      if (typeof countdownSeconds === "number") {
+        this.duration = countdownSeconds * 1000;
+      } else {
+        // Reprise après pause (aucune durée fournie) : "elapsed" contient le
+        // temps RESTANT au moment de la pause (cf. pause() plus bas) - il
+        // devient la nouvelle durée à décompter à partir de maintenant.
+        // Sans ce cas, une reprise repartait de la durée totale d'origine.
+        this.duration = this.elapsed;
+      }
+      this.startTime = Date.now();
+    } else {
+      this.startTime = Date.now() - this.elapsed;
+    }
+
+    this.save();
+    this.updateUI(this.getTime());
+  },
+
+  pause() {
+    if (!this.running) return;
+
+    this.elapsed = this.getTime();
+    this.running = false;
+
+    this.save();
+    this.updateUI(this.elapsed);
+  },
+
+  reset() {
+    this.running = false;
+    this.startTime = null;
+    this.elapsed = 0;
+    this.duration = 0;
+
+    this.save();
+    this.updateUI(0);
+    this.notify(0);
+  },
+
+  // -------------------------
+  // MINI WIDGET UI
   // -------------------------
   createWidget() {
-
-    if (document.getElementById("evap-mini-timer")) return;
+    if (document.getElementById("evap-mini-timer")) {
+      this.widget = document.getElementById("evap-mini-timer");
+      return;
+    }
 
     const el = document.createElement("div");
     el.id = "evap-mini-timer";
+    el.title = "Cliquer pour mettre en pause";
 
-    el.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid #F472B6;
-      color: #EC4899;
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-weight: 600;
-      font-family: Poppins, sans-serif;
-      z-index: 999999;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      display: none;
-    `;
-
-    el.onclick = () => {
-      this.pause();
-    };
+    el.onclick = () => this.pause();
 
     document.body.appendChild(el);
     this.widget = el;
@@ -140,45 +195,16 @@ const EvapTimer = {
     const txt = this.format(ms);
     this.widget.innerText = txt;
 
-    // visible si actif OU si temps existe
     const shouldShow = this.running || this.elapsed > 0;
-
     this.widget.style.display = shouldShow ? "block" : "none";
-  },
-
-  // -------------------------
-  // CONTROLS (OPTIONAL HOOKS)
-  // -------------------------
-  startStopwatch() {
-    this.mode = "stopwatch";
-    this.running = true;
-    this.startTime = Date.now() - this.elapsed;
-    this.save();
-  },
-
-  pause() {
-    if (!this.running) return;
-
-    this.elapsed = this.getTime();
-    this.running = false;
-
-    this.save();
-  },
-
-  reset() {
-    this.running = false;
-    this.startTime = null;
-    this.elapsed = 0;
-    this.duration = 0;
-
-    this.save();
-    this.updateUI(0);
   }
 };
 
 // =========================
 // AUTO START EVERY PAGE
+// This script tag is placed at the end of <body> (before page-specific
+// scripts), so the DOM is already ready - no need to wait for "load".
+// Running synchronously means EvapTimer's persisted state (mode/running/...)
+// is available immediately to any script that loads after this one.
 // =========================
-window.addEventListener("load", () => {
-  EvapTimer.init();
-});
+EvapTimer.init();

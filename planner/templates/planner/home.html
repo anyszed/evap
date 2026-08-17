@@ -1,284 +1,302 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Planner - Evap</title>
+{% extends "base.html" %}
+{% block title %}Planner - Evap{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+{% block extrahead %}
+<link rel="stylesheet" href="/static/css/planner-binder.css">
+{% endblock %}
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rose: '#F472B6',
-        darkrose: '#EC4899',
-        softbg: '#FFF1F7',
-      },
-      fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
-        serif: ['Merriweather', 'serif'],
-      }
-    }
-  }
-}
-</script>
+{% block content %}
 
-<style>
-.card {
-  background: white;
-  border-radius: 18px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-  transition: 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
-}
-
-.project-card {
-  border-left: 4px solid #F472B6;
-}
-
-.soft-hover {
-  transition: 0.15s ease;
-}
-.soft-hover:hover {
-  background: rgba(244,114,182,0.08);
-  transform: scale(1.01);
-}
-
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.fade-in {
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.icon-btn {
-  width: 32px;
-  height: 32px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius: 10px;
-  transition: 0.2s;
-}
-
-.icon-btn:hover {
-  background: rgba(244,114,182,0.12);
-  transform: scale(1.05);
-}
-
-.task {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 8px;
-  border-radius:10px;
-}
-
-.task:hover {
-  background: rgba(0,0,0,0.03);
-}
-</style>
-
-</head>
-
-<body class="bg-softbg font-sans min-h-screen flex">
-
-<!-- SIDEBAR -->
-<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
-
-<nav class="flex flex-col gap-2 relative text-sm">
-
-<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
-
-<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
-<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
-<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
-<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
-<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
-
-</nav>
-</aside>
-
-<!-- MAIN -->
-<main class="flex-1 p-10 space-y-8">
-
-<!-- HEADER -->
-<div class="flex justify-between items-center">
-<h1 class="text-3xl font-serif text-darkrose">Planner</h1>
-
-<button onclick="openModal('projectModal')"
-class="bg-rose text-white px-4 py-2 rounded-lg hover:bg-darkrose transition">
-+ Projet
-</button>
+<div class="flex justify-between items-center gap-4 flex-wrap">
+  <h1 class="text-4xl font-serif font-bold text-gradient pb-1">Planner</h1>
 </div>
 
-<!-- PROJECTS AS CARDS -->
-<section class="space-y-4">
+{% if projects %}
+<div class="classeur">
 
-{% for project in projects %}
+  <div class="classeur-cover" aria-hidden="true"></div>
 
-<div class="card project-card p-5 fade-in">
+  <div class="classeur-spine" aria-hidden="true">
+    <div class="spine-title">CLASSEUR</div>
+    <div class="ring ring-one"></div>
+    <div class="ring ring-two"></div>
+    <div class="ring ring-three"></div>
+  </div>
 
-<!-- CLICK PROJECT AREA -->
-<div onclick="openProjectDetails({{ project.id }})" class="cursor-pointer">
+  <!-- INTERCALAIRES -->
+  <aside class="classeur-rail">
+    <div class="rail-heading">
+      <div>
+        <span class="eyebrow">Mon espace</span>
+        <h2>Mes projets</h2>
+      </div>
+      <button type="button" onclick="openProjectCreate()" class="rail-mini-action" aria-label="Nouveau projet">
+        {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+      </button>
+    </div>
 
-<!-- HEADER PROJECT -->
-<div class="flex justify-between items-center mb-3">
+    <nav class="project-list" id="binderTabs">
+      {% for project in projects %}
+      <button type="button"
+        class="project-tab"
+        data-project-id="{{ project.id }}"
+        data-project-name="{{ project.name }}">
+        <span class="tab-number">{{ forloop.counter|stringformat:"02d" }}</span>
+        <span class="tab-title">{{ project.name }}</span>
+        <span class="tab-count">{{ project.undone_tasks }}</span>
+      </button>
+      {% endfor %}
+    </nav>
 
-<div>
-<h2 class="text-lg font-serif text-rose">{{ project.name }}</h2>
-<p class="text-xs text-gray-500">
-{{ project.due_date|date:"d/m/Y" }}
-</p>
+    <button type="button" onclick="openProjectCreate()" class="new-project-tab">
+      {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+      Nouvel intercalaire
+    </button>
+  </aside>
+
+  <!-- PAGES -->
+  <section class="classeur-sheet">
+    <div class="paper-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div id="binderPages">
+      {% for project in projects %}
+      <div class="sheet-page" data-project-page="{{ project.id }}">
+        <div class="paper-content">
+
+          <div class="sheet-heading">
+            <div class="min-w-0 cursor-pointer" onclick="openProjectDetails({{ project.id }})" title="Modifier ce projet">
+              <h2 class="truncate">{{ project.name }}</h2>
+              {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+            </div>
+            <div class="progress-stamp">
+              <div class="stamp-number">{{ project.percent }}<span>%</span></div>
+              <span>avancé</span>
+            </div>
+          </div>
+
+          <div class="sheet-meta">
+            {% if project.due_date %}
+            <span>{% include "partials/icon.html" with name="calendar" cls="w-3.5 h-3.5" %}Échéance · <strong>{{ project.due_date|date:"d/m/Y" }}</strong></span>
+            {% endif %}
+            <span>{% include "partials/icon.html" with name="check" cls="w-3.5 h-3.5" %}{{ project.done_tasks }} sur {{ project.total_tasks }} terminées</span>
+            <button type="button" onclick="window.location.href='{% url 'planner:close_project' project.id %}'" class="icon-btn icon-btn-success !w-7 !h-7 !min-w-0 !min-h-0" title="Marquer le projet comme terminé" aria-label="Marquer le projet comme terminé">
+              {% include "partials/icon.html" with name="check" cls="w-4 h-4" %}
+            </button>
+          </div>
+
+          <div class="sheet-divider"><span>Feuille de route</span><div></div></div>
+
+          <div class="task-toolbar">
+            <label class="sheet-search">
+              {% include "partials/icon.html" with name="search" cls="w-4 h-4" %}
+              <input type="text" placeholder="Chercher une tâche…" oninput="filterTasks(this, {{ project.id }})">
+            </label>
+          </div>
+
+          <div class="tasks-list">
+            {% for task in tasks %}
+            {% if task.project_id == project.id %}
+            <article class="task-row" data-task-title="{{ task.title|lower }}">
+              <button type="button" class="task-check" onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'" aria-label="Marquer la tâche comme terminée">
+                {% include "partials/icon.html" with name="check" cls="w-3 h-3" %}
+              </button>
+              <button type="button" class="task-main" onclick="openTaskDetails({{ task.id }})">
+                <div class="task-title-line">
+                  <span class="task-title">{{ task.title }}</span>
+                  {% if task.priority == 3 %}
+                  <span class="badge badge-high">Haute</span>
+                  {% elif task.priority == 2 %}
+                  <span class="badge badge-medium">Moyenne</span>
+                  {% else %}
+                  <span class="badge badge-low">Basse</span>
+                  {% endif %}
+                </div>
+                {% if task.due_date %}
+                <div class="task-subline"><span>{% include "partials/icon.html" with name="calendar" cls="w-3.5 h-3.5" %}{{ task.due_date|date:"d/m/Y" }}</span></div>
+                {% endif %}
+              </button>
+              <button type="button" class="task-open" onclick="openTaskDetails({{ task.id }})" aria-label="Ouvrir la tâche">
+                {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}
+              </button>
+            </article>
+            {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="tasks-list-empty empty-state" style="display:none;">
+            <p>Aucune tâche ne correspond à cette recherche.</p>
+          </div>
+
+          <button type="button" onclick="openTaskCreate({{ project.id }})" class="create-card w-full py-2.5 text-sm mt-3 ml-[22px]" style="width: calc(100% - 22px);">
+            {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+            <span>Ajouter une tâche</span>
+          </button>
+
+          <div class="sheet-footer">
+            <span>Feuille {{ forloop.counter|stringformat:"02d" }}</span>
+            <span>{{ project.undone_tasks }} tâche{{ project.undone_tasks|pluralize }} à faire</span>
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </section>
+
 </div>
-
-<div class="flex gap-2">
-
-<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
-class="icon-btn text-green-600">✔</button>
-
-<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_project' project.id %}'"
-class="icon-btn text-red-500">🗑</button>
-
-</div>
-</div>
-
-</div>
-
-<!-- TASKS -->
-<div class="space-y-1 ml-2">
-
-{% for task in tasks %}
-{% if task.project_id == project.id %}
-
-<div class="task cursor-pointer"
-onclick="openTaskDetails({{ task.id }})">
-
-<div>
-<div class="font-medium text-sm">{{ task.title }}</div>
-<div class="text-xs text-gray-500">
-{{ task.due_date|date:"d/m/Y" }}
-</div>
-</div>
-
-<div class="flex gap-2">
-
-{% if task.priority == 3 %}
-<span class="badge bg-red-100 text-red-600">Haute</span>
-{% elif task.priority == 2 %}
-<span class="badge bg-yellow-100 text-yellow-600">Moyenne</span>
 {% else %}
-<span class="badge bg-green-100 text-green-600">Basse</span>
+<div class="empty-state card">
+  <div class="empty-state-icon">{% include "partials/icon.html" with name="planner" cls="w-8 h-8 text-rose" %}</div>
+  <p>Aucun projet en cours.</p>
+  <button type="button" onclick="openProjectCreate()" class="btn btn-primary mt-2">
+    {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+    Nouveau projet
+  </button>
+</div>
 {% endif %}
 
-<button onclick="event.stopPropagation(); window.location.href='{% url 'planner:close_task' task.id %}'"
-class="icon-btn text-green-600">✔</button>
-
-</div>
-
-</div>
-
-{% endif %}
-{% endfor %}
-
-<!-- ADD TASK -->
-<button onclick="openTaskModal({{ project.id }})"
-class="text-sm text-rose mt-2 hover:underline">
-+ ajouter tâche
-</button>
-
-</div>
-
-</div>
-
-{% endfor %}
-
-</section>
-
-</main>
-
-<!-- MODALS -->
 {% include "planner/modals/project_modal.html" %}
 {% include "planner/modals/task_modal.html" %}
 
+{% endblock %}
+
+{% block extrascripts %}
 <script>
 function openModal(id){
-    document.getElementById(id).classList.remove('hidden');
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeModal(id){
-    document.getElementById(id).classList.add('hidden');
+    const modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
-function openTaskModal(projectId){
-    const modal = document.getElementById("taskModal");
-    modal.classList.remove("hidden");
+/* ================= PROJECT MODAL: create vs edit ================= */
 
-    const select = modal.querySelector("select[name='project']");
-    if(select){
-        select.value = projectId;
-    }
+function openProjectCreate(){
+    const form = document.getElementById('projectForm');
+    form.reset();
+    form.action = form.dataset.createUrl;
+    document.getElementById('projectModalTitle').textContent = 'Nouveau projet';
+    document.getElementById('projectModalSubmit').textContent = 'Créer';
+    openModal('projectModal');
 }
-
-/* ================= DETAILS ================= */
 
 async function openProjectDetails(id){
     const res = await fetch(`/planner/api/project/${id}/`);
     const data = await res.json();
 
-    const modal = document.getElementById("projectModal");
-    modal.classList.remove("hidden");
+    const form = document.getElementById('projectForm');
+    form.action = form.dataset.updateUrlTemplate.replace(/\/0\/$/, `/${id}/`);
+    document.getElementById('projectModalTitle').textContent = 'Modifier le projet';
+    document.getElementById('projectModalSubmit').textContent = 'Enregistrer';
 
-    modal.querySelector("input[name='name']").value = data.name;
-    modal.querySelector("textarea[name='description']").value = data.description || "";
-    modal.querySelector("input[name='due_date']").value = data.due_date || "";
+    form.querySelector("input[name='name']").value = data.name;
+    form.querySelector("textarea[name='description']").value = data.description || "";
+    form.querySelector("input[name='due_date']").value = data.due_date || "";
+
+    openModal('projectModal');
+}
+
+/* ================= TASK MODAL: create vs edit ================= */
+
+function openTaskCreate(projectId){
+    const form = document.getElementById('taskForm');
+    form.reset();
+    form.action = form.dataset.createUrl;
+    document.getElementById('taskModalTitle').textContent = 'Nouvelle tâche';
+    document.getElementById('taskModalSubmit').textContent = 'Créer';
+
+    const select = form.querySelector("select[name='project']");
+    if (select) select.value = projectId || "";
+
+    openModal('taskModal');
 }
 
 async function openTaskDetails(id){
     const res = await fetch(`/planner/api/task/${id}/`);
     const data = await res.json();
 
-    const modal = document.getElementById("taskModal");
-    modal.classList.remove("hidden");
+    const form = document.getElementById('taskForm');
+    form.action = form.dataset.updateUrlTemplate.replace(/\/0\/$/, `/${id}/`);
+    document.getElementById('taskModalTitle').textContent = 'Modifier la tâche';
+    document.getElementById('taskModalSubmit').textContent = 'Enregistrer';
 
-    modal.querySelector("input[name='title']").value = data.title;
-    modal.querySelector("textarea[name='description']").value = data.description || "";
-    modal.querySelector("input[name='due_date']").value = data.due_date || "";
+    form.querySelector("input[name='title']").value = data.title;
+    form.querySelector("textarea[name='description']").value = data.description || "";
+    form.querySelector("input[name='due_date']").value = data.due_date || "";
+    form.querySelector("select[name='priority']").value = data.priority;
+    form.querySelector("select[name='project']").value = data.project_id || "";
+
+    openModal('taskModal');
 }
 
-/* sidebar indicator */
-function moveActiveIndicator(){
-    const items = document.querySelectorAll('.menu-item');
-    const indicator = document.getElementById('active-indicator');
-    const path = window.location.pathname;
+/* ================= RECHERCHE (par feuille) ================= */
 
-    items.forEach(item => {
-        if(item.dataset.path === path){
-            indicator.style.top = item.offsetTop + 'px';
-            indicator.style.height = item.offsetHeight + 'px';
-        }
+function filterTasks(input, projectId){
+    const value = input.value.trim().toLowerCase();
+    const page = document.querySelector(`.sheet-page[data-project-page="${projectId}"]`);
+    if (!page) return;
+
+    const rows = page.querySelectorAll('.task-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const match = row.dataset.taskTitle.includes(value);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
     });
+
+    const emptyState = page.querySelector('.tasks-list-empty');
+    if (emptyState) emptyState.style.display = (rows.length && visible === 0) ? 'flex' : 'none';
 }
 
-window.addEventListener('load', moveActiveIndicator);
-window.addEventListener('resize', moveActiveIndicator);
-</script>
+/* ================= CLASSEUR : onglets projet ================= */
 
-</body>
-</html>
+(function initBinder(){
+    const tabs = Array.from(document.querySelectorAll('.project-tab[data-project-id]'));
+    const pages = Array.from(document.querySelectorAll('.sheet-page[data-project-page]'));
+    if (!tabs.length) return;
+
+    /* couleur d'accent par onglet, dérivée du nom du projet (pas de champ en base) */
+    const PALETTE = ['#F472B6', '#EC4899', '#DB2777', '#E879F9', '#C026D3', '#FB7185'];
+    function hashColor(str){
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+        return PALETTE[h % PALETTE.length];
+    }
+    tabs.forEach(t => t.style.setProperty('--tab-color', hashColor(t.dataset.projectName || t.dataset.projectId)));
+
+    function showProject(id, opts){
+        opts = opts || {};
+        const idStr = String(id);
+
+        tabs.forEach(t => t.classList.toggle('is-active', t.dataset.projectId === idStr));
+
+        pages.forEach(p => {
+            const match = p.dataset.projectPage === idStr;
+            p.classList.toggle('hidden', !match);
+
+            if (match && !opts.skipAnim){
+                p.classList.remove('sheet-page-enter');
+                void p.offsetWidth; /* force reflow pour rejouer l'animation */
+                p.classList.add('sheet-page-enter');
+            }
+        });
+
+        if (!opts.skipHash) history.replaceState(null, '', '#p-' + idStr);
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => showProject(t.dataset.projectId)));
+
+    const validIds = tabs.map(t => t.dataset.projectId);
+    const hashMatch = location.hash.match(/^#p-(\d+)/);
+    const initialId = (hashMatch && validIds.includes(hashMatch[1])) ? hashMatch[1] : validIds[0];
+    showProject(initialId, { skipAnim: true, skipHash: true });
+})();
+</script>
+{% endblock %}

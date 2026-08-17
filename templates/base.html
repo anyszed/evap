@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Evap{% endblock %}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        rose: '#F472B6',
+        darkrose: '#EC4899',
+        softbg: '#FFF1F7',
+        ink: '#7A2048',
+        muted: '#8A6B79',
+        blush: '#FBCFE8',
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Merriweather', 'serif'],
+      }
+    }
+  }
+}
+</script>
+
+<link rel="stylesheet" href="/static/css/evap.css">
+
+{% block extrahead %}{% endblock %}
+</head>
+
+<body class="font-sans bg-softbg min-h-screen text-ink md:flex">
+
+<div class="evap-bg" aria-hidden="true"></div>
+
+{% block chrome %}
+<!-- MOBILE TOPBAR -->
+<header class="md:hidden flex items-center justify-between bg-darkrose text-white px-4 py-3 sticky top-0 z-40">
+  <a href="/" class="text-xl font-bold font-serif">Evap</a>
+  <button id="sidebarToggle" class="icon-btn text-white" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar">
+    {% include "partials/icon.html" with name="menu" cls="w-6 h-6" %}
+  </button>
+</header>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/40 z-40 md:hidden"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar"
+  class="evap-sidebar text-white flex flex-col p-6 w-72 md:w-64 min-h-screen fixed md:sticky top-0 left-0 z-50 -translate-x-full md:translate-x-0 transition-transform duration-200 ease-out">
+
+  <div class="flex items-center justify-between mb-10">
+    <a href="/" class="text-2xl font-bold font-serif">Evap</a>
+    <button id="sidebarClose" class="icon-btn text-white md:hidden" aria-label="Fermer le menu">
+      {% include "partials/icon.html" with name="x" cls="w-5 h-5" %}
+    </button>
+  </div>
+
+  <nav class="relative flex flex-col gap-1 text-sm">
+    <div id="sidebarHighlight" aria-hidden="true"></div>
+    <a href="/notes/" class="menu-item px-3 py-2.5 rounded-xl {% if request.path == '/notes/' %}is-active{% endif %}">
+      {% include "partials/icon.html" with name="notes" cls="w-5 h-5 shrink-0" %}
+      <span>Bloc-notes</span>
+    </a>
+    <a href="/planner/" class="menu-item px-3 py-2.5 rounded-xl {% if request.path == '/planner/' %}is-active{% endif %}">
+      {% include "partials/icon.html" with name="planner" cls="w-5 h-5 shrink-0" %}
+      <span>Planner</span>
+    </a>
+    <a href="/calendar/" class="menu-item px-3 py-2.5 rounded-xl {% if request.path == '/calendar/' %}is-active{% endif %}">
+      {% include "partials/icon.html" with name="calendar" cls="w-5 h-5 shrink-0" %}
+      <span>Calendrier</span>
+    </a>
+    <a href="/timer/" class="menu-item px-3 py-2.5 rounded-xl {% if request.path == '/timer/' %}is-active{% endif %}">
+      {% include "partials/icon.html" with name="timer" cls="w-5 h-5 shrink-0" %}
+      <span>Timer</span>
+    </a>
+    <a href="/grades/" class="menu-item px-3 py-2.5 rounded-xl {% if request.path == '/grades/' %}is-active{% endif %}">
+      {% include "partials/icon.html" with name="grades" cls="w-5 h-5 shrink-0" %}
+      <span>Calcul de notes</span>
+    </a>
+  </nav>
+
+  <div class="mt-auto pt-6 text-xs text-white/70">
+    Pour l'amour de ma vie 💗
+  </div>
+</aside>
+{% endblock %}
+
+<!-- MAIN -->
+<main class="flex-1 min-w-0 p-6 md:p-10 space-y-8">
+{% block content %}{% endblock %}
+</main>
+
+<script>
+/* MOBILE DRAWER */
+(function(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const openBtn = document.getElementById('sidebarToggle');
+  const closeBtn = document.getElementById('sidebarClose');
+
+  function openDrawer(){
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+    openBtn?.setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer(){
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+    openBtn?.setAttribute('aria-expanded', 'false');
+  }
+
+  openBtn?.addEventListener('click', openDrawer);
+  closeBtn?.addEventListener('click', closeDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+})();
+
+/* SIDEBAR - un seul highlight qui glisse d'un item à l'autre plutôt qu'un
+   fond par item (survole, ou attends : il revient sur la page active). */
+(function(){
+  const nav = document.querySelector('#sidebar nav');
+  const highlight = document.getElementById('sidebarHighlight');
+  if (!nav || !highlight) return;
+
+  const items = Array.from(nav.querySelectorAll('.menu-item'));
+  const activeItem = items.find(i => i.classList.contains('is-active')) || null;
+
+  function moveTo(el){
+    if (!el){ highlight.style.opacity = '0'; return; }
+    highlight.style.top = el.offsetTop + 'px';
+    highlight.style.height = el.offsetHeight + 'px';
+    highlight.style.opacity = '1';
+  }
+
+  nav.classList.add('has-js');
+  moveTo(activeItem);
+
+  items.forEach(item => item.addEventListener('mouseenter', () => moveTo(item)));
+  nav.addEventListener('mouseleave', () => moveTo(activeItem));
+  window.addEventListener('resize', () => moveTo(activeItem));
+})();
+</script>
+
+{% comment %}
+evap-timer.js loads before any page script so EvapTimer is ready and
+pages (e.g. /timer/) can read its persisted state synchronously.
+{% endcomment %}
+<script src="/static/js/evap-timer.js"></script>
+{% block extrascripts %}{% endblock %}
+
+</body>
+</html>

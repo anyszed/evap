@@ -1,217 +1,86 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Timer - Evap</title>
+{% extends "base.html" %}
+{% block title %}Timer - Evap{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+{% block extrahead %}
+<link rel="stylesheet" href="/static/css/timer-clock.css">
+{% endblock %}
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rose: '#F472B6',
-        darkrose: '#EC4899',
-        softbg: '#FFF1F7'
-      },
-      fontFamily: {
-              sans: ['Poppins', 'sans-serif'],
-              serif: ['Merriweather', 'serif'],
-            }
-    }
-  }
-}
-</script>
+{% block content %}
 
-<style>
-body { font-family: Poppins, sans-serif; }
+<div class="flex-1 flex items-center justify-center">
+<div class="timer-desk">
 
-/* SIDEBAR */
-aside { background: #F472B6; }
+<div class="timer-face w-full max-w-[540px] fade-in">
 
-/* CARD */
-.card {
-  background: white;
-  border-radius: 22px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-}
+  <!-- MODE -->
+  <div class="timer-mode-tabs">
+    <button id="btnStopwatch" class="btn" onclick="setMode('stopwatch')">Chrono</button>
+    <button id="btnCountdown" class="btn" onclick="setMode('countdown')">Minuteur</button>
+  </div>
 
-/* TIMER */
-.timer-display {
-  font-size: 72px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  color: #EC4899;
-}
+  <!-- RING + DISPLAY -->
+  <div class="timer-ring-face">
+    <span class="clock-mark mark-12">12</span>
+    <span class="clock-mark mark-3">3</span>
+    <span class="clock-mark mark-6">6</span>
+    <span class="clock-mark mark-9">9</span>
+    <div class="clock-hand hour-hand"></div>
+    <div class="clock-hand minute-hand"></div>
+    <div class="clock-center"></div>
+    <div id="display" class="timer-display">00:00:00</div>
+  </div>
 
-/* BASE BUTTON */
-.btn {
-  padding: 10px 16px;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: 0.2s;
-  cursor: pointer;
-}
+  <!-- INPUT -->
+  <div id="countdownSetup" class="hidden mb-6">
+    <div class="flex gap-2 justify-center">
+      <input id="minutesInput" type="number" min="0" placeholder="min" class="input timer-input w-24 text-center">
+      <input id="secondsInput" type="number" min="0" max="59" placeholder="sec" class="input timer-input w-24 text-center">
+    </div>
+    <div class="timer-presets">
+      <button type="button" onclick="startPreset(25)">25 min · Focus</button>
+      <button type="button" onclick="startPreset(5)">5 min · Pause</button>
+      <button type="button" onclick="startPreset(15)">15 min · Grande pause</button>
+    </div>
+  </div>
 
-/* PRIMARY */
-.btn-primary {
-  background: #F472B6;
-  color: white;
-  border: 1px solid transparent;
-}
-
-.btn-primary:hover {
-  background: #EC4899;
-}
-
-/* GHOST */
-.btn-ghost {
-  border: 1px solid #F472B6;
-  color: #EC4899;
-  background: white;
-}
-
-.btn-ghost:hover {
-  background: #FFF1F7;
-}
-
-/* 🔥 FIX IMPORTANT: ACTIVE STATE FOR ALL BUTTONS */
-.active-mode {
-  background: #EC4899 !important;
-  color: white !important;
-  border-color: #EC4899 !important;
-}
-
-/* ACTIVE CONTROL STATE (Start/Pause visual feedback) */
-.active-control {
-  background: #EC4899 !important;
-  color: white !important;
-  border-color: #EC4899 !important;
-}
-
-/* MINI TIMER */
-#miniTimer {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid #F472B6;
-  border-radius: 14px;
-  padding: 10px 14px;
-  display: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  z-index: 9999;
-  font-weight: 600;
-  color: #EC4899;
-  cursor: pointer;
-}
-
-input { outline: none; }
-</style>
-</head>
-
-<body class="font-sans bg-rose-100 min-h-screen flex">
-
-<!-- SIDEBAR -->
-<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
-
-<nav class="flex flex-col gap-2 relative text-sm">
-
-<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
-
-<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
-<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
-<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
-<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
-<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
-
-</nav>
-</aside>
-
-<!-- MAIN -->
-<main class="flex-1 p-10 flex items-center justify-center">
-
-<div class="card w-[540px] p-10 text-center">
-
-<!-- MODE -->
-<div class="flex justify-center gap-2 mb-8">
-<button id="btnStopwatch" class="btn btn-primary" onclick="setMode('stopwatch')">
-Chrono
-</button>
-<button id="btnCountdown" class="btn btn-ghost" onclick="setMode('countdown')">
-Minuteur
-</button>
-</div>
-
-<!-- DISPLAY -->
-<div id="display" class="timer-display mb-6">00:00:00</div>
-
-<!-- INPUT -->
-<div id="countdownSetup" class="hidden mb-6">
-<div class="flex gap-2 justify-center">
-<input id="minutesInput" type="number" min="0" placeholder="min"
-class="border rounded p-2 w-20 text-center">
-
-<input id="secondsInput" type="number" min="0" max="59" placeholder="sec"
-class="border rounded p-2 w-20 text-center">
-</div>
-</div>
-
-<!-- CONTROLS -->
-<div class="flex justify-center gap-3">
-<button id="btnStart" class="btn btn-primary" onclick="startTimer()">Start</button>
-<button id="btnPause" class="btn btn-ghost" onclick="pauseTimer()">Pause</button>
-<button id="btnReset" class="btn btn-ghost" onclick="resetTimer()">Reset</button>
-</div>
+  <!-- CONTROLS -->
+  <div class="timer-controls flex justify-center gap-3">
+    <button id="btnStart" class="btn btn-primary" onclick="handleStart()">Start</button>
+    <button id="btnPause" class="btn btn-ghost" onclick="handlePause()">Pause</button>
+    <button id="btnReset" class="btn btn-ghost" onclick="handleReset()">Reset</button>
+  </div>
 
 </div>
 
-</main>
+</div>
+</div>
 
-<!-- MINI TIMER -->
-<div id="miniTimer" onclick="toggleMini()">00:00:00</div>
+{% endblock %}
 
+{% block extrascripts %}
 <script>
 
 let mode = "stopwatch";
-let interval = null;
-
-let startTime = null;
-let elapsed = 0;
-let duration = 0;
-let running = false;
-let miniVisible = false;
 
 /* MODE UI */
 function setActiveModeButtons(){
-  document.getElementById("btnStopwatch").classList.remove("active-mode");
-  document.getElementById("btnCountdown").classList.remove("active-mode");
-
-  if(mode === "stopwatch"){
-    document.getElementById("btnStopwatch").classList.add("active-mode");
-  } else {
-    document.getElementById("btnCountdown").classList.add("active-mode");
-  }
+  document.getElementById("btnStopwatch").classList.toggle("btn-active", mode === "stopwatch");
+  document.getElementById("btnCountdown").classList.toggle("btn-active", mode === "countdown");
 }
 
 /* CONTROL UI */
-function setControlState(active){
+function setControlState(activeId){
   ["btnStart","btnPause","btnReset"].forEach(id => {
     document.getElementById(id).classList.remove("active-control");
   });
-
-  if(active){
-    document.getElementById(active).classList.add("active-control");
+  if(activeId){
+    document.getElementById(activeId).classList.add("active-control");
   }
 }
 
 /* MODE */
 function setMode(m){
-  resetTimer();
+  EvapTimer.setMode(m);
   mode = m;
 
   document.getElementById("countdownSetup").style.display =
@@ -221,95 +90,53 @@ function setMode(m){
   setControlState(null);
 }
 
-/* START */
-function startTimer(){
-  if(running) return;
-  running = true;
-
-  setControlState("btnStart");
-
-  document.getElementById("miniTimer").style.display = "block";
-
-  if(mode === "stopwatch"){
-    startTime = Date.now() - elapsed;
-
-    interval = setInterval(() => {
-      elapsed = Date.now() - startTime;
-      updateDisplay(elapsed);
-    }, 100);
-  }
-
+function handleStart(){
+  let seconds;
   if(mode === "countdown"){
     const min = parseInt(document.getElementById("minutesInput").value || 0);
     const sec = parseInt(document.getElementById("secondsInput").value || 0);
-
-    duration = (min * 60 + sec) * 1000;
-    startTime = Date.now();
-
-    interval = setInterval(() => {
-      const remaining = duration - (Date.now() - startTime);
-
-      if(remaining <= 0){
-        resetTimer();
-        updateDisplay(0);
-        return;
-      }
-
-      updateDisplay(remaining);
-    }, 100);
+    seconds = min * 60 + sec;
   }
+  EvapTimer.start(seconds);
+  setControlState("btnStart");
 }
 
-/* PAUSE */
-function pauseTimer(){
-  if(!running) return;
-  running = false;
-  clearInterval(interval);
+function startPreset(minutes){
+  mode = "countdown";
+  document.getElementById("minutesInput").value = minutes;
+  document.getElementById("secondsInput").value = 0;
+  document.getElementById("countdownSetup").style.display = "block";
+  setActiveModeButtons();
+  handleStart();
+}
 
+function handlePause(){
+  EvapTimer.pause();
   setControlState("btnPause");
 }
 
-/* RESET */
-function resetTimer(){
-  clearInterval(interval);
-  running = false;
-
-  elapsed = 0;
-  startTime = null;
-  duration = 0;
-
-  updateDisplay(0);
-
-  document.getElementById("miniTimer").style.display = "none";
-
+function handleReset(){
+  EvapTimer.reset();
   setControlState("btnReset");
 }
 
-/* DISPLAY */
-function updateDisplay(ms){
-
-  const total = Math.floor(ms / 1000);
-  const h = String(Math.floor(total / 3600)).padStart(2,'0');
-  const m = String(Math.floor((total % 3600) / 60)).padStart(2,'0');
-  const s = String(total % 60).padStart(2,'0');
-
-  const txt = `${h}:${m}:${s}`;
-
-  document.getElementById("display").innerText = txt;
-  document.getElementById("miniTimer").innerText = txt;
+/* DISPLAY (driven by the shared EvapTimer loop) */
+function renderTime(ms){
+  document.getElementById("display").innerText = EvapTimer.format(ms);
 }
 
-/* MINI */
-function toggleMini(){
-  const el = document.getElementById("miniTimer");
-  miniVisible = !miniVisible;
-  el.style.opacity = miniVisible ? "0.4" : "1";
-}
+/* INIT - reflect whatever state the persistent timer already has
+   (e.g. a countdown started on another page keeps running here).
+   EvapTimer is already initialized at this point (see base.html). */
+mode = EvapTimer.mode;
 
-/* INIT */
-setMode("stopwatch");
+document.getElementById("countdownSetup").style.display =
+  mode === "countdown" ? "block" : "none";
+
+setActiveModeButtons();
+setControlState(EvapTimer.running ? "btnStart" : null);
+
+EvapTimer.subscribe(renderTime);
 
 </script>
-<script src="/static/js/evap-timer.js"></script>
-</body>
-</html>
+{% endblock %}

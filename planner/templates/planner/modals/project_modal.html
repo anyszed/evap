@@ -1,14 +1,21 @@
-<div id="projectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded shadow w-96">
-    <h2 class="text-lg font-bold mb-4">Nouveau projet</h2>
-    <form method="POST" action="{% url 'planner:create_project' %}">
+<div id="projectModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+  <div class="modal-panel paper-dialog p-6 w-[min(420px,92vw)] fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="projectModalTitle" class="text-lg font-serif text-darkrose">Nouveau projet</h2>
+      <button type="button" onclick="closeModal('projectModal')" class="icon-btn !w-8 !h-8 !min-w-0 !min-h-0 text-muted" aria-label="Fermer">
+        {% include "partials/icon.html" with name="x" cls="w-4 h-4" %}
+      </button>
+    </div>
+    <form id="projectForm" method="POST" action="{% url 'planner:create_project' %}" class="space-y-3"
+      data-create-url="{% url 'planner:create_project' %}"
+      data-update-url-template="{% url 'planner:update_project' 0 %}">
       {% csrf_token %}
-      <input type="text" name="name" placeholder="Nom du projet" class="w-full mb-2 p-2 border rounded" required>
-      <textarea name="description" placeholder="Description" class="w-full mb-2 p-2 border rounded"></textarea>
-      <input type="date" name="due_date" class="w-full mb-4 p-2 border rounded">
-      <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeModal('projectModal')" class="px-4 py-2 border rounded">Annuler</button>
-        <button type="submit" class="bg-violet px-4 py-2 rounded">Créer</button>
+      <input type="text" name="name" placeholder="Nom du projet" class="input" required>
+      <textarea name="description" placeholder="Description" class="input h-24 resize-none"></textarea>
+      <input type="date" name="due_date" class="input">
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('projectModal')" class="btn btn-ghost">Annuler</button>
+        <button id="projectModalSubmit" type="submit" class="btn btn-primary">Créer</button>
       </div>
     </form>
   </div>

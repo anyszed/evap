@@ -1,142 +1,52 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Calculateur - Evap</title>
+{% extends "base.html" %}
+{% block title %}Calculateur - Evap{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+{% block extrahead %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rose: '#F472B6',
-        darkrose: '#EC4899',
-        softbg: '#FFF1F7'
-      },
-      fontFamily: {
-        sans: ['Poppins'],
-        serif: ['Merriweather']
-      }
-    }
-  }
-}
-</script>
-
+<link rel="stylesheet" href="/static/css/grades-bulletin.css">
 <style>
-.card {
-  background: white;
-  border-radius: 22px;
-  padding: 18px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-  transition: 0.2s;
-}
-.card:hover { transform: translateY(-2px); }
-
-.subject-card {
-  border-left: 4px solid #F472B6;
-  transition: 0.2s;
-}
-
-.subject-card:hover {
-  transform: scale(1.01);
-}
-
-input {
-  outline: none;
-  transition: 0.2s;
-  border-radius: 8px;
-}
-
-input:focus {
-  transform: scale(1.02);
-  box-shadow: 0 0 0 2px rgba(244,114,182,0.25);
-}
-
-.icon-btn {
-  width: 34px;
-  height: 34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius: 10px;
-  transition: 0.2s;
-}
-
-.icon-btn:hover {
-  background: rgba(244,114,182,0.15);
-  transform: scale(1.05);
-}
-
-.fade {
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 canvas { max-height: 200px; }
 </style>
+{% endblock %}
 
-</head>
+{% block content %}
 
-<body class="font-sans bg-softbg min-h-screen flex">
+<div class="report-head-frame">
+  <div class="report-ribbon"><span>Bulletin scolaire</span></div>
 
-<aside class="w-64 bg-rose text-white flex flex-col p-6 min-h-screen">
-<a href="/" class="text-2xl font-bold mb-10 font-serif">Evap</a>
-
-<nav class="flex flex-col gap-2 relative text-sm">
-
-<div id="active-indicator" class="absolute left-0 w-1 bg-white rounded"></div>
-
-<a href="/notes/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/notes/">Bloc-notes</a>
-<a href="/planner/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/planner/">Planner</a>
-<a href="/calendar/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/calendar/">Calendrier</a>
-<a href="/timer/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/timer/">Timer</a>
-<a href="/grades/" class="menu-item px-3 py-2 rounded hover:bg-darkrose" data-path="/grades/">Calcul de notes</a>
-
-</nav>
-</aside>
-
-<main class="flex-1 p-10">
-
-<div class="flex justify-between items-center mb-6">
-<h1 class="text-3xl font-serif text-darkrose">Calculateur</h1>
-
-<button onclick="createTable()"
-class="bg-rose text-white px-4 py-2 rounded-xl shadow hover:scale-105 transition">
-+ Nouveau tableau
-</button>
+  <div class="report-head">
+    <h1>Calculateur de notes</h1>
+    <button onclick="createTable()" class="brass-button">
+      {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+      Nouveau tableau
+    </button>
+  </div>
 </div>
 
-<div id="tables-container" class="grid grid-cols-2 gap-6"></div>
+<div id="tables-container" class="grid grid-cols-1 xl:grid-cols-2 gap-6"></div>
 
-</main>
+{% endblock %}
 
+{% block extrascripts %}
 <script>
 
-/* ================= CSRF (FIX) ================= */
-
-function getCSRF() {
-    return document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-}
+/* SVG icons for JS-rendered content (mirrors templates/partials/icon.html) */
+const ICON_TRASH = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 7h14M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2m-8.5 0 .8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9L18.5 7"/><path d="M10 11v6M14 11v6"/></svg>';
+const ICON_X = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const ICON_PLUS = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M12 5v14M5 12h14"/></svg>';
+const ICON_TROPHY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v3m-3 4h6m-3-4v4"/></svg>';
 
 /* ================= API ================= */
+/* Le token vient directement du contexte Django (comme sur les autres pages) :
+   contrairement à une lecture du cookie csrftoken, ça marche même si /grades/
+   est la toute première page visitée dans la session. */
 
 async function post(url, body={}) {
     return fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": getCSRF()
+            "X-CSRFToken": "{{ csrf_token }}"
         },
         body: JSON.stringify(body)
     }).then(r => r.json());
@@ -146,7 +56,7 @@ async function post(url, body={}) {
 
 let state = { tables: [] };
 
-/* ================= INIT (FIX) ================= */
+/* ================= INIT ================= */
 
 async function init() {
     const res = await fetch("/grades/get_tables/");
@@ -305,6 +215,9 @@ function calculateAll() {
 
             subject.querySelector(".subject-average").innerText = avg.toFixed(2);
 
+            const impactBar = subject.querySelector(".subject-impact-bar > span");
+            if (impactBar) impactBar.style.width = Math.max(0, Math.min(100, avg / 20 * 100)) + "%";
+
             const coeff = Number(subject.querySelector(".subject-coeff")?.value || 1);
 
             total += avg * coeff;
@@ -327,8 +240,11 @@ function calculateAll() {
                 labels,
                 datasets: [{
                     data: values,
-                    backgroundColor: ['#F472B6','#EC4899','#FB7185','#F9A8D4','#FBCFE8']
+                    backgroundColor: ['#EC4899','#F472B6','#F9A8D4','#DB2777','#FBCFE8']
                 }]
+            },
+            options: {
+                plugins: { legend: { labels: { font: { family: "Poppins" } } } }
             }
         });
     });
@@ -340,77 +256,102 @@ function render() {
     const container = document.getElementById("tables-container");
     container.innerHTML = "";
 
+    if (state.tables.length === 0) {
+        const ICON_GRADES = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7 text-rose"><path d="M3.5 20h17"/><rect x="5.5" y="12" width="3" height="7"/><rect x="10.5" y="7.5" width="3" height="11.5"/><rect x="15.5" y="4" width="3" height="15"/></svg>';
+        container.innerHTML = `
+        <div class="col-span-full empty-state card">
+            <div class="empty-state-icon">${ICON_GRADES}</div>
+            <p>Aucun tableau pour l'instant — clique sur "Nouveau tableau" pour commencer.</p>
+        </div>`;
+        return;
+    }
+
     state.tables.forEach(t => {
 
         const div = document.createElement("div");
-        div.className = "card table-card fade";
+        div.className = "card bulletin-sheet table-card fade-in";
 
         div.innerHTML = `
-        <div class="flex justify-between mb-4">
+        <div class="bulletin-header flex justify-between items-start gap-3 mb-1">
 
-            <input class="text-xl font-bold"
-                value="${t.name}"
-                oninput="updateTableName(${t.id}, this.value)">
+            <div class="flex-1 min-w-0">
+                <div class="bulletin-kicker">${ICON_TROPHY} Le point sur mes notes</div>
+                <input class="bulletin-title-input w-full"
+                    value="${t.name}"
+                    oninput="updateTableName(${t.id}, this.value)">
+            </div>
 
-            <div class="flex gap-2">
-                <button onclick="addSubject(${t.id})" class="bg-rose text-white px-3 py-1 rounded">+ matière</button>
-                <button onclick="deleteTable(${t.id})" class="bg-red-500 text-white px-3 py-1 rounded">supprimer</button>
+            <div class="bulletin-average shrink-0">
+                <span class="global-average">0</span>
+                <span class="bulletin-average-label">/ 20</span>
             </div>
 
         </div>
 
-        <div class="space-y-3">
+        <div class="bulletin-header flex gap-2 mb-4">
+            <button onclick="addSubject(${t.id})" class="btn btn-primary !px-3 !py-1.5 text-xs">${ICON_PLUS} matière</button>
+            <button onclick="deleteTable(${t.id})" class="icon-btn icon-btn-danger !w-8 !h-8 !min-w-0 !min-h-0" aria-label="Supprimer le tableau">${ICON_TRASH}</button>
+        </div>
+
+        <div>
 
         ${t.subjects.map(s => `
-            <div class="subject subject-card p-3 rounded">
+            <div class="subject bulletin-subject">
 
-                <div class="flex gap-2 mb-2">
+                <div class="flex gap-2 mb-2 items-center">
 
-                    <input class="subject-name border p-1 w-full"
+                    <i class="subject-dot"></i>
+
+                    <input class="subject-name input !py-1.5 flex-1"
                         value="${s.name}"
+                        placeholder="Nom de la matière"
                         oninput="updateSubject(${t.id}, ${s.id}, 'name', this.value)">
 
-                    <input class="subject-coeff border p-1 w-16"
+                    <input class="subject-coeff input !py-1.5 w-16 text-center"
                         value="${s.coeff}"
+                        title="Coefficient"
                         oninput="updateSubject(${t.id}, ${s.id}, 'coeff', this.value)">
 
-                    <button class="icon-btn" onclick="deleteSubject(${s.id})">🗑</button>
+                    <button class="icon-btn icon-btn-danger !w-8 !h-8 !min-w-0 !min-h-0" aria-label="Supprimer la matière" onclick="deleteSubject(${s.id})">${ICON_TRASH}</button>
 
                 </div>
 
-                ${s.grades.map(g => `
-                    <div class="grade flex gap-2">
+                <div class="subject-impact-bar"><span></span></div>
 
-                        <input class="border p-1 w-full"
+                ${s.grades.map(g => `
+                    <div class="grade bulletin-grade-row flex gap-2 mb-1.5">
+
+                        <input class="input !py-1.5 flex-1"
                             value="${g.name}"
+                            placeholder="Note"
                             oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'name', this.value)">
 
-                        <input class="grade-value border p-1 w-16"
+                        <input class="grade-value input !py-1.5 w-16 text-center"
                             value="${g.value}"
+                            title="Valeur"
                             oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'value', this.value)">
 
-                        <input class="grade-coeff border p-1 w-16"
+                        <input class="grade-coeff input !py-1.5 w-16 text-center"
                             value="${g.coeff}"
+                            title="Coefficient"
                             oninput="updateGrade(${t.id}, ${s.id}, ${g.id}, 'coeff', this.value)">
 
-                        <button class="icon-btn" onclick="deleteGrade(${g.id})">❌</button>
+                        <button class="icon-btn icon-btn-danger !w-8 !h-8 !min-w-0 !min-h-0" aria-label="Supprimer la note" onclick="deleteGrade(${g.id})">${ICON_X}</button>
 
                     </div>
                 `).join("")}
 
-                <button onclick="addGrade(${s.id})" class="text-sm text-rose mt-2">+ note</button>
+                <button onclick="addGrade(${s.id})" class="flex items-center gap-1.5 text-sm text-darkrose mt-1 hover:underline">
+                    ${ICON_PLUS} note
+                </button>
 
-                <div class="text-xs mt-2 text-gray-500">
-                    Moyenne : <span class="subject-average">0</span>
+                <div class="text-xs mt-2 text-muted">
+                    Moyenne : <span class="subject-average font-semibold text-ink">0</span>
                 </div>
 
             </div>
         `).join("")}
 
-        </div>
-
-        <div class="mt-4 font-bold text-darkrose">
-            Moyenne générale : <span class="global-average">0</span>
         </div>
 
         <canvas class="chart mt-4"></canvas>
@@ -425,6 +366,4 @@ function render() {
 init();
 
 </script>
-
-</body>
-</html>
+{% endblock %}

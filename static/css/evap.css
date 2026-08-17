@@ -1,0 +1,476 @@
+/* ==========================================================================
+   Evap - design system partagé (remplace les <style> dupliqués par page)
+   Tokens couleurs/typo définis dans templates/base.html (tailwind.config)
+   ========================================================================== */
+
+:root {
+  --grad-primary: linear-gradient(135deg, #F9A8D4 0%, #F472B6 45%, #DB2777 100%);
+  --grad-primary-hover: linear-gradient(135deg, #F472B6 0%, #EC4899 45%, #BE185D 100%);
+  --grad-soft: linear-gradient(160deg, #ffffff 0%, #FFF3F8 100%);
+  --shadow-ambient: 0 24px 60px -20px rgba(190, 24, 93, .28), 0 2px 8px rgba(190, 24, 93, .06);
+  --shadow-ambient-hover: 0 30px 70px -18px rgba(190, 24, 93, .38), 0 4px 12px rgba(190, 24, 93, .10);
+  --shadow-glow: 0 8px 24px -6px rgba(219, 39, 119, .45);
+
+  /* "Papeterie" - partagés entre le classeur (planner-binder.css) et le
+     bureau d'accueil (dashboard-desk.css) pour que les deux se lisent comme
+     le même objet physique vu à deux échelles. */
+  --classeur-cover: linear-gradient(160deg, #9D174D 0%, #831843 100%);
+  --classeur-ring: #C9A15B;
+  --classeur-paper: #FFFDFB;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Atmosphère : dégradés radiaux fixes en fond, décoratifs, non intrusifs */
+.evap-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #FFF6FA;
+}
+
+.evap-bg::before,
+.evap-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .55;
+}
+
+.evap-bg::before {
+  width: 620px;
+  height: 620px;
+  top: -220px;
+  right: -160px;
+  background: radial-gradient(circle, #FBCFE8 0%, transparent 70%);
+}
+
+.evap-bg::after {
+  width: 560px;
+  height: 560px;
+  bottom: -240px;
+  left: 15%;
+  background: radial-gradient(circle, #FDE6F0 0%, transparent 70%);
+}
+
+/* Focus visible cohérent partout (accessibilité clavier) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #EC4899;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Titres
+   -------------------------------------------------------------------------- */
+.text-gradient {
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Cartes
+   -------------------------------------------------------------------------- */
+.card {
+  background: var(--grad-soft);
+  border: 1px solid rgba(244, 114, 182, .12);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: var(--shadow-ambient);
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s cubic-bezier(.22,1,.36,1), border-color .25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-ambient-hover);
+  border-color: rgba(244, 114, 182, .28);
+}
+
+.card-accent {
+  position: relative;
+  border-left: none;
+  /* !important: Tailwind's CDN JIT stylesheet can be (re)injected after this
+     one depending on load timing, so a same-specificity Tailwind padding
+     utility (e.g. p-3) on the same element could otherwise win the cascade. */
+  padding-left: 26px !important;
+}
+
+.card-accent::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--grad-primary);
+}
+
+.fade-in {
+  /* "backwards" (pas "both") : une fois l'entrée terminée, l'animation
+     rend la main sur transform/opacity à la cascade normale - sinon elle
+     continue de l'emporter indéfiniment sur toute autre règle de transform
+     ciblant le même élément (ex. rotation légère des pense-bêtes, hover). */
+  animation: evapFadeIn .35s cubic-bezier(.22,1,.36,1) backwards;
+}
+
+/* Stagger discret pour les grilles (notes, cartes projet...) */
+.grid > .fade-in:nth-child(1) { animation-delay: .02s; }
+.grid > .fade-in:nth-child(2) { animation-delay: .06s; }
+.grid > .fade-in:nth-child(3) { animation-delay: .10s; }
+.grid > .fade-in:nth-child(4) { animation-delay: .14s; }
+.grid > .fade-in:nth-child(5) { animation-delay: .18s; }
+.grid > .fade-in:nth-child(6) { animation-delay: .22s; }
+section > .fade-in:nth-child(1) { animation-delay: .02s; }
+section > .fade-in:nth-child(2) { animation-delay: .07s; }
+section > .fade-in:nth-child(3) { animation-delay: .12s; }
+section > .fade-in:nth-child(4) { animation-delay: .17s; }
+
+@keyframes evapFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   Boutons / actions
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .15s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, filter .2s ease, background-color .18s ease, color .18s ease;
+  border: 1px solid transparent;
+}
+
+.btn:active { transform: scale(.96); }
+
+.btn-primary {
+  background: var(--grad-primary);
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+}
+.btn-primary:hover { filter: brightness(1.06); box-shadow: 0 10px 30px -6px rgba(219, 39, 119, .55); transform: translateY(-1px); }
+
+.btn-ghost {
+  background: #fff;
+  color: #DB2777;
+  border-color: #FBCFE8;
+  box-shadow: 0 2px 8px rgba(190, 24, 93, .05);
+}
+.btn-ghost:hover { background: #FFF1F7; border-color: #F9A8D4; transform: translateY(-1px); }
+
+.btn-danger {
+  background: #fff;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+.btn-danger:hover { background: #FEF2F2; transform: translateY(-1px); }
+
+.btn-active,
+.active-control {
+  background: var(--grad-primary) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: var(--shadow-glow);
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #9D174D;
+  transition: background-color .18s ease, transform .15s cubic-bezier(.22,1,.36,1), box-shadow .18s ease;
+  cursor: pointer;
+}
+.icon-btn:hover { background: rgba(236, 72, 153, .12); transform: scale(1.08); box-shadow: 0 4px 14px rgba(219, 39, 119, .18); }
+.icon-btn.icon-btn-danger:hover { background: #FEF2F2; color: #DC2626; box-shadow: 0 4px 14px rgba(220, 38, 38, .15); }
+.icon-btn.icon-btn-success:hover { background: #F0FDF4; color: #16A34A; box-shadow: 0 4px 14px rgba(22, 163, 74, .15); }
+
+/* buttons/icon-btns below 44px visual box still meet the touch target via min-width/height above */
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.03);
+}
+
+.badge-high   { background: linear-gradient(135deg, #FEE2E2, #FECACA); color: #B91C1C; }
+.badge-medium { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #B45309; }
+.badge-low    { background: linear-gradient(135deg, #DCFCE7, #BBF7D0); color: #15803D; }
+
+/* --------------------------------------------------------------------------
+   Champs de formulaire
+   -------------------------------------------------------------------------- */
+.input {
+  width: 100%;
+  border: 1px solid #FBCFE8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+  background: #fff;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+}
+.input:focus {
+  border-color: #EC4899;
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, .18);
+}
+
+/* --------------------------------------------------------------------------
+   Modales
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(76, 8, 41, .5);
+  /* Pas de backdrop-filter ici : combiné à un overlay fixed plein écran,
+     ça produit un liseré clair au bord supérieur sous Chromium (headless
+     et non-headless) - le fond teinté seul suffit à détacher la modale. */
+  z-index: 50;
+}
+
+.modal-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #FFF8FB 100%);
+  border: 1px solid rgba(244, 114, 182, .15);
+  border-radius: 22px;
+  box-shadow: 0 30px 80px -20px rgba(76, 8, 41, .35);
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar / navigation
+   -------------------------------------------------------------------------- */
+.evap-sidebar {
+  position: relative;
+  background: linear-gradient(165deg, #F472B6 0%, #EC4899 55%, #DB2777 100%);
+  box-shadow: 8px 0 40px -12px rgba(157, 23, 77, .35);
+  overflow: hidden;
+}
+
+.evap-sidebar::before {
+  content: "";
+  position: absolute;
+  top: -140px;
+  left: -100px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.16) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.evap-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background-color .18s ease, color .18s ease, transform .18s cubic-bezier(.22,1,.36,1);
+}
+
+.menu-item.is-active {
+  background: rgba(255, 255, 255, .2);
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(76, 8, 41, .18), inset 0 0 0 1px rgba(255,255,255,.25);
+}
+
+.menu-item:hover { background: rgba(255, 255, 255, .14); transform: translateX(2px); }
+
+/* Un seul indicateur qui glisse d'un item à l'autre (piloté par le JS de
+   base.html) plutôt qu'un fond par item — cf. pattern "macos-sidebar".
+   Tant que le JS n'a pas tourné, .is-active garde son fond statique
+   ci-dessus comme fallback : has-js ne l'ajoute qu'une fois le highlight prêt. */
+#sidebarHighlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .2);
+  box-shadow: 0 6px 18px rgba(76, 8, 41, .18), inset 0 0 0 1px rgba(255, 255, 255, .25);
+  opacity: 0;
+  transition: top .2s cubic-bezier(.22,1,.36,1), height .2s cubic-bezier(.22,1,.36,1), opacity .15s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+nav.has-js .menu-item.is-active { background: transparent; box-shadow: none; }
+nav.has-js .menu-item:hover { background: transparent; transform: none; }
+.menu-item > * { position: relative; z-index: 1; }
+
+/* --------------------------------------------------------------------------
+   Carte de création (bordure pointillée, "+" — notes, planner...)
+   -------------------------------------------------------------------------- */
+.create-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed rgba(244, 114, 182, .5);
+  border-radius: 14px;
+  color: #DB2777;
+  background: rgba(255, 255, 255, .4);
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1);
+}
+.create-card:hover {
+  background: #fff;
+  border-color: #F472B6;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Empty states
+   -------------------------------------------------------------------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 36px 12px;
+  color: #9D5C7D;
+  text-align: center;
+}
+
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FDF2F8 0%, #FCE7F3 100%);
+  box-shadow: inset 0 0 0 1px rgba(244, 114, 182, .18);
+}
+
+/* --------------------------------------------------------------------------
+   FullCalendar theming
+   -------------------------------------------------------------------------- */
+.fc {
+  background: var(--grad-soft);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: var(--shadow-ambient);
+  --fc-border-color: #FCE7F3;
+  --fc-today-bg-color: #FDF0F7;
+  --fc-neutral-bg-color: #FFF7FB;
+}
+
+.fc-toolbar-title { color: #DB2777 !important; font-weight: 700; }
+
+.fc-button {
+  background: var(--grad-primary) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  text-transform: capitalize !important;
+  box-shadow: 0 4px 14px rgba(219, 39, 119, .28) !important;
+  transition: filter .15s ease, transform .15s ease !important;
+}
+.fc-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.fc-button-active { filter: brightness(.92) !important; }
+
+.fc-event {
+  border: none !important;
+  border-radius: 8px !important;
+  background: var(--grad-primary) !important;
+  box-shadow: 0 2px 8px rgba(219, 39, 119, .28);
+}
+
+.event-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 20px -4px rgba(190, 24, 93, .14);
+  border-left: 4px solid transparent;
+  border-image: var(--grad-primary) 1;
+  margin-bottom: 8px;
+  transition: transform .18s cubic-bezier(.22,1,.36,1);
+}
+.event-card:hover { transform: translateX(2px); }
+
+/* --------------------------------------------------------------------------
+   Mini timer (persistent widget, see static/js/evap-timer.js)
+   -------------------------------------------------------------------------- */
+#evap-mini-timer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, .92);
+  border: 1px solid #F9A8D4;
+  color: #DB2777;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  z-index: 999999;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-ambient-hover);
+  display: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+#evap-mini-timer:hover { transform: translateY(-2px); }
+
+/* --------------------------------------------------------------------------
+   Transitions de page natives (MPA classique côté Django, pas de SPA) —
+   dégradation silencieuse sur les navigateurs qui ne supportent pas encore
+   la View Transitions API multi-pages.
+   -------------------------------------------------------------------------- */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+/* --------------------------------------------------------------------------
+   Accessibilité : réduction de mouvement
+   Tout le mouvement de ce fichier est piloté par des classes CSS togglées
+   (pas de timer JS impératif à couper séparément), donc cette seule couche
+   suffit à tout neutraliser.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+  }
+}
