@@ -139,6 +139,26 @@ Demande : pouvoir changer la couleur du site depuis une palette, en gardant "les
 - Pas de presets de couleurs prédéfinies, uniquement la roue de couleur native du navigateur — à ajouter facilement si souhaité (une rangée de pastilles calculant chacune `hexToHue()` sur un clic).
 - `localStorage` uniquement (pas de compte utilisateur dans Evap) : le choix est local au navigateur, pas partagé entre appareils.
 
+## Passe 7 — sidebar remplacée par une "binder bar"
+
+Retiré la sidebar (jugée "ai-slop" par l'utilisateur) au profit d'une barre horizontale sticky en haut de page, adaptée du composant `BinderBar` (React/wouter) fourni par l'utilisateur, accompagné d'une capture de la maquette classeur-planner. Même principe que les passes précédentes : structure/interaction reprises, couleurs adaptées à la charte rose, comportement Django (routes classiques, pas de SPA) inchangé.
+
+- **`templates/base.html`** : toute la sidebar (`<aside>`, topbar mobile + hamburger, overlay, JS de drawer, highlight qui glisse) supprimée. `{% block chrome %}` contient maintenant `.binder-bar` : chip "classeur" à gauche (lien vers `/`), puis une carte par outil (Bloc-notes/Classeur/Calendrier/Timer/Calcul de notes) — icône dans un carré teinté, libellé, **détail réel** (pas de texte statique comme dans la maquette), chevron. `body` n'est plus `md:flex` (plus de sidebar à côté du contenu), `<main>` a perdu ses classes `flex-1`/`min-w-0` devenues inutiles.
+- **Détails réels par outil** (remplacent les "3 pense-bêtes"/"mars 2024"/"25:00"/"15,4 / 20" statiques de la maquette) :
+  - Bloc-notes → nombre de notes non supprimées.
+  - Classeur → nombre de projets actifs (`done=False`).
+  - Calendrier → mois/année courants (`{{ binder_today|date:"F Y" }}`, locale fr-fr déjà en place).
+  - Calcul de notes → moyenne pondérée du premier `GradeTable`, calculée en Python (même formule que `calculateAll()` côté JS : moyenne par matière pondérée par les coefficients de notes, puis moyenne globale pondérée par les coefficients de matière), affichée via `floatformat:1` (virgule française automatique, `USE_I18N` + `LANGUAGE_CODE=fr-fr`).
+  - Timer → pas de valeur côté serveur (aucun modèle, état 100% client dans `EvapTimer`/`localStorage`) : `<small id="binderTimerDetail">` mis à jour en JS via `EvapTimer.subscribe()`, format compact `mm:ss` (calculé localement dans ce script, sans toucher `EvapTimer.format()` qui reste `hh:mm:ss` pour les autres usages).
+- **Nouveau `dashboard/context_processors.py`** (`binder_bar`, enregistré dans `config/settings.py` → `TEMPLATES[0]['OPTIONS']['context_processors']`) : centralise les requêtes notes/projets/moyenne pour que chaque vue (notes/planner/calendar/timer/grades) n'ait pas à les dupliquer — la barre vit dans `{% block chrome %}`, partagé par toutes ces pages. Le tableau de bord n'a pas cette barre (chrome vide, comme depuis la Passe 4) donc ne déclenche pas ces requêtes en plus des siennes propres, mais le context processor tourne quand même dessus (coût négligeable, quelques requêtes légères) — pas cherché à l'exclure spécifiquement, la simplicité valait mieux qu'une optimisation inutile à cette échelle (appli mono-utilisateur locale).
+- **Ordre de chargement JS corrigé au passage** : `evap-timer.js` doit maintenant se charger avant le script inline de `base.html` (qui s'abonne à `EvapTimer` dès son exécution, pas au `load`) — déplacé juste avant, alors qu'il se chargeait avant en toute fin de `<body>` (ça ne posait pas de problème avant puisque rien dans `base.html` lui-même n'utilisait `EvapTimer`, seul `{% block extrascripts %}` — chargé encore après — en dépendait).
+- **Couleurs des icônes par outil** : distinctes entre elles (comme les onglets du classeur, cf. Passe 6) mais exprimées en décalage fixe depuis `--brand-h` (`hsl(calc(var(--brand-h) + décalage) ...)`) pour suivre le sélecteur de couleur : jaune pour les notes, teinte de marque quasi pure pour le classeur (outil central, cf. `ideas.md` de la maquette : "le planner reste central"), sauge (complémentaire, -180°) pour le calendrier, lavande pour le bulletin. Le timer reste en laiton fixe (non lié à `--brand-h`) — c'est la matière du boîtier de l'horloge affichée sur `/timer/`, traité pareil que `--classeur-ring` partout ailleurs, pas une couleur de marque.
+- CSS de la barre dans `evap.css` (global, remplace le bloc "Sidebar / navigation" retiré) plutôt qu'un fichier scopé à une page, puisque `{% block chrome %}` est partagé par toutes les pages sauf le tableau de bord.
+
+### Non touché dans cette passe
+- Le tableau de bord (`/`) garde son absence de chrome — cohérent avec la décision de la Passe 4 (les 5 objets du bureau font déjà office de navigation).
+- Pas de version "repliée" de la barre sur mobile : elle défile horizontalement (`overflow-x: auto`), les libellés secondaires (détail sous chaque titre) se masquent sous 700px pour garder les cartes compactes.
+
 ## Dette technique connue (hors périmètre de cette passe)
 
 - **Pas de suppression réelle** pour les projets/tâches du planner (seulement "clôturer" → `done=True`, qui les fait disparaître de la vue). Si une vraie suppression est voulue, ajouter des vues `delete_project`/`delete_task` + bouton dédié.

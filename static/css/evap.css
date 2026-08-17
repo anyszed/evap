@@ -327,68 +327,133 @@ section > .fade-in:nth-child(4) { animation-delay: .17s; }
 }
 
 /* --------------------------------------------------------------------------
-   Sidebar / navigation
+   Binder bar — remplace l'ancienne sidebar. Barre horizontale sticky en
+   haut de page, adaptée du composant BinderBar (maquette classeur-planner)
+   fourni par l'utilisateur : chip "classeur" à gauche + une carte cliquable
+   par outil (icône teintée, libellé, détail réel, chevron). Chaque page
+   individuelle (notes/planner/calendar/timer/grades) reste responsable de
+   son propre header ; seule la navigation globale change. Absente du
+   tableau de bord, qui garde les 5 objets du bureau comme nav (Passe 4).
    -------------------------------------------------------------------------- */
-.evap-sidebar {
-  position: relative;
-  background: linear-gradient(165deg, var(--c-f472b6) 0%, var(--c-ec4899) 55%, var(--c-db2777) 100%);
-  box-shadow: 8px 0 40px -12px hsl(var(--brand-h) 74% 35% / .35);
-  overflow: hidden;
+.binder-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 8px 8px 8px 0;
+  margin: 0 0 8px;
+  background: var(--c-fff1f7);
+  border-bottom: 3px solid var(--classeur-ring);
+  box-shadow: var(--shadow-ambient);
+}
+.binder-bar::-webkit-scrollbar { display: none; }
+
+.binder-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 10px 18px;
+  margin-left: 8px;
+  border-radius: 14px;
+  background: #ffffff;
+}
+.binder-label span {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--c-5c1638);
+  line-height: 1;
+}
+.binder-label small {
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--c-9b7e89);
 }
 
-.evap-sidebar::before {
-  content: "";
-  position: absolute;
-  top: -140px;
-  left: -100px;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.16) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.evap-sidebar > * {
-  position: relative;
-  z-index: 1;
-}
-
-.menu-item {
+.binder-card {
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: background-color .18s ease, color .18s ease, transform .18s cubic-bezier(.22,1,.36,1);
+  flex-shrink: 0;
+  padding: 8px 14px 8px 8px;
+  margin: 2px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px hsl(var(--brand-h) 78% 42% / .08);
+  transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, background-color .18s ease;
+  white-space: nowrap;
+}
+.binder-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-ambient); }
+
+.binder-card.is-active {
+  background: var(--grad-primary);
+  box-shadow: var(--shadow-glow);
+}
+.binder-card.is-active strong,
+.binder-card.is-active small,
+.binder-card.is-active svg:last-child { color: #fff !important; }
+.binder-card.is-active .binder-card-shape { background: rgba(255, 255, 255, .28); color: #fff; }
+
+.binder-card-shape {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--c-7a2048);
+}
+/* Chaque outil garde une teinte distincte des autres (comme les puces de
+   matière/onglets projet) mais exprimée en décalage fixe depuis --brand-h,
+   donc l'ensemble tourne avec la couleur choisie sans jamais se confondre :
+   jaune (notes), brand pur (classeur, l'outil central), sauge/complémentaire
+   (calendrier), lavande (bulletin). Le timer reste laiton fixe - c'est la
+   matière du boîtier de l'horloge sur /timer/, pas une couleur de marque. */
+.tool-notes .binder-card-shape { background: hsl(calc(var(--brand-h) + 80) 70% 88%); }
+.tool-planner .binder-card-shape { background: hsl(calc(var(--brand-h) + 3) 71% 88%); }
+.tool-calendar .binder-card-shape { background: hsl(calc(var(--brand-h) - 180) 40% 88%); }
+.tool-timer .binder-card-shape { background: hsl(38 60% 84%); color: #8A6B37; }
+.tool-grades .binder-card-shape { background: hsl(calc(var(--brand-h) - 60) 55% 88%); }
+
+.binder-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+}
+.binder-card-copy strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-5c1638);
+}
+.binder-card-copy small {
+  font-size: 10.5px;
+  color: var(--c-9b7e89);
 }
 
-.menu-item.is-active {
-  background: rgba(255, 255, 255, .2);
-  font-weight: 600;
-  box-shadow: 0 6px 18px hsl(var(--brand-h) 81% 16% / .18), inset 0 0 0 1px rgba(255,255,255,.25);
+.binder-card > svg:last-child { color: var(--c-9b7e89); flex-shrink: 0; }
+
+.binder-end-cap {
+  flex-shrink: 0;
+  width: 6px;
+  margin: 8px 4px 8px 0;
+  border-radius: 3px;
+  background: var(--classeur-ring);
 }
 
-.menu-item:hover { background: rgba(255, 255, 255, .14); transform: translateX(2px); }
-
-/* Un seul indicateur qui glisse d'un item à l'autre (piloté par le JS de
-   base.html) plutôt qu'un fond par item — cf. pattern "macos-sidebar".
-   Tant que le JS n'a pas tourné, .is-active garde son fond statique
-   ci-dessus comme fallback : has-js ne l'ajoute qu'une fois le highlight prêt. */
-#sidebarHighlight {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .2);
-  box-shadow: 0 6px 18px hsl(var(--brand-h) 81% 16% / .18), inset 0 0 0 1px rgba(255, 255, 255, .25);
-  opacity: 0;
-  transition: top .2s cubic-bezier(.22,1,.36,1), height .2s cubic-bezier(.22,1,.36,1), opacity .15s ease;
-  pointer-events: none;
-  z-index: 0;
+@media (max-width: 700px) {
+  .binder-card-copy small { display: none; }
+  .binder-card { padding: 8px 10px 8px 8px; }
 }
-
-nav.has-js .menu-item.is-active { background: transparent; box-shadow: none; }
-nav.has-js .menu-item:hover { background: transparent; transform: none; }
-.menu-item > * { position: relative; z-index: 1; }
 
 /* --------------------------------------------------------------------------
    Carte de création (bordure pointillée, "+" — notes, planner...)
