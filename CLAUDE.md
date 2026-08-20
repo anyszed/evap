@@ -170,6 +170,10 @@ Deux petites demandes indépendantes :
 ### Non touché dans cette passe
 - La modale de création (`#createNoteModal`) garde sa taille d'origine — la demande portait spécifiquement sur l'ouverture d'une note existante, pas sur la création.
 
+### Corrections après retour utilisateur (rendu prod)
+- **Grand post-it stylé en dev mais pas en prod** : `config/urls.py` servait `/static/...` (route de secours ajoutée pour gunicorn, cf. plus haut) sans aucun en-tête `Cache-Control`/`ETag` explicite — vérifié par `curl -I`, rien n'était renvoyé. Sans directive, le navigateur applique une politique heuristique et peut resservir un CSS/JS mis en cache **sans même recontacter le serveur** après un déploiement, d'où le petit modal non stylé (l'ancien `.paper-dialog`/`.input`, avant la Passe 8) persistant après coup côté utilisateur alors que le fichier servi était pourtant à jour. Corrigé en enveloppant la vue de service statique avec `cache_control(no_cache=True, must_revalidate=True)` (`django.views.decorators.cache`) : force une revalidation à chaque requête (petit aller-retour `If-Modified-Since`/304 si rien n'a changé, donc pas de coût réel), garantissant qu'un changement est visible dès le rechargement suivant sans recourir à un cache forcé. Vérifié via `Client()` de Django (pas via `runserver`, qui sert `/static/` par son propre mécanisme interne indépendant de `urls.py` et ne passe donc jamais par cette route — seul gunicorn/prod l'emprunte) : `Cache-Control: no-cache, must-revalidate` bien présent après coup.
+- **Overlay de modale mordant sur la binder bar** : `.modal-overlay` (`z-index: 50`) passait au-dessus de `.binder-bar` (`z-index: 40`, sticky en haut), l'assombrissant à chaque modale ouverte. `.binder-bar` remonté à `z-index: 60` pour rester visible/non assombrie au-dessus de toute modale.
+
 ## Dette technique connue (hors périmètre de cette passe)
 
 - **Pas de suppression réelle** pour les projets/tâches du planner (seulement "clôturer" → `done=True`, qui les fait disparaître de la vue). Si une vraie suppression est voulue, ajouter des vues `delete_project`/`delete_task` + bouton dédié.

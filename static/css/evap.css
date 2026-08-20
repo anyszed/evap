@@ -338,7 +338,10 @@ section > .fade-in:nth-child(4) { animation-delay: .17s; }
 .binder-bar {
   position: sticky;
   top: 0;
-  z-index: 40;
+  /* Au-dessus de .modal-overlay (z-index: 50) : sans ça, l'assombrissement
+     d'une modale (ex. le grand post-it) mordait sur la barre en restant
+     sticky par-dessus elle plutôt qu'en dessous. */
+  z-index: 60;
   display: flex;
   align-items: stretch;
   gap: 2px;
