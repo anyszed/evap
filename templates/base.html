@@ -25,7 +25,15 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        rose: 'var(--c-f472b6)',
+        /* rose est un objet ({ DEFAULT: ... }) et pas juste une chaîne :
+           Tailwind a déjà une famille "rose" native (rose-50…rose-950).
+           Une chaîne nue écrase toute cette échelle (donc bg-rose-100 ne
+           génère plus rien, invisible/transparent) ; un objet se fusionne
+           avec l'échelle par défaut à la place — text-rose/bg-rose (sans
+           chiffre) utilisent notre couleur de marque, bg-rose-100 etc.
+           retombent sur les teintes Tailwind standard (utilisées par ex.
+           par la palette aléatoire des pense-bêtes, notes/views.py). */
+        rose: { DEFAULT: 'var(--c-f472b6)' },
         darkrose: 'var(--c-ec4899)',
         softbg: 'var(--c-fff1f7)',
         ink: 'var(--c-7a2048)',

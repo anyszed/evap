@@ -39,3 +39,77 @@
 .create-sticky {
   border-radius: 10px;
 }
+
+/* -------------------------------------------------------------------------
+   Grand post-it (édition d'une note) — remplace l'ancien petit modal texte
+   qui obligeait à scroller. Même identité que la carte cliquée (couleur
+   posée en JS depuis data.color, cf. openNote()), juste beaucoup plus
+   grande : le titre et le contenu ont enfin la place de respirer.
+   ------------------------------------------------------------------------- */
+.note-sheet {
+  position: relative;
+  width: min(760px, 92vw);
+  height: min(82vh, 760px);
+  border-radius: 3px 3px 10px 10px;
+  box-shadow: 0 30px 80px -20px hsl(var(--brand-h) 81% 16% / .45), 0 10px 22px -6px hsl(var(--brand-h) 61% 30% / .28);
+  padding: 44px 40px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.note-sheet .washi-tape {
+  position: absolute;
+  width: 92px;
+  height: 24px;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(201, 161, 91, .55);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.note-sheet-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, .65) !important;
+}
+
+.note-sheet-title {
+  flex-shrink: 0;
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--c-5c1638);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid hsl(var(--brand-h) 61% 30% / .15);
+  padding: 0 36px 14px 0;
+  outline: none;
+}
+.note-sheet-title::placeholder { color: hsl(var(--brand-h) 61% 30% / .35); }
+.note-sheet-title:focus { border-color: var(--c-ec4899); }
+
+.note-sheet-content {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.65;
+  color: hsl(var(--brand-h) 61% 22% / .85);
+  white-space: pre-wrap;
+  overflow-y: auto;
+}
+.note-sheet-content::placeholder { color: hsl(var(--brand-h) 61% 22% / .35); }
+
+.note-sheet-actions { flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .note-sheet { width: 94vw; height: 88vh; padding: 34px 22px 20px; }
+  .note-sheet-title { font-size: 21px; }
+}

@@ -116,14 +116,20 @@
 
 </div>
 
-<!-- EDIT POPUP -->
-<div id="notePopup" class="fixed inset-0 hidden items-center justify-center modal-overlay z-50">
-  <div class="modal-panel paper-dialog w-[min(650px,92vw)] p-6 flex flex-col fade-in">
+<!-- EDIT POPUP (grand post-it, même identité visuelle que la carte cliquée) -->
+<div id="notePopup" class="fixed inset-0 hidden items-center justify-center modal-overlay z-50" onclick="if(event.target===this) closePopup()">
+  <div id="notePopupSheet" class="note-sheet fade-in">
 
-    <input id="popupTitle" class="input text-lg font-semibold mb-3" placeholder="Titre">
-    <textarea id="popupContent" class="input h-64 whitespace-pre-wrap resize-none"></textarea>
+    <div class="washi-tape"></div>
 
-    <div class="flex justify-end gap-3 mt-4">
+    <button onclick="closePopup()" class="icon-btn note-sheet-close" aria-label="Fermer">
+      {% include "partials/icon.html" with name="x" cls="w-5 h-5" %}
+    </button>
+
+    <input id="popupTitle" class="note-sheet-title" placeholder="Titre">
+    <textarea id="popupContent" class="note-sheet-content" placeholder="Écris quelque chose..."></textarea>
+
+    <div class="flex justify-end gap-3 note-sheet-actions">
       <button onclick="closePopup()" class="btn btn-ghost">Fermer</button>
       <button onclick="saveNote()" class="btn btn-primary">Enregistrer</button>
     </div>
@@ -207,10 +213,22 @@ currentNoteId = id;
 document.getElementById("popupTitle").value = data.title || "";
 document.getElementById("popupContent").value = data.content;
 
+/* Le grand post-it reprend la couleur de la carte cliquée, pour que
+   ce soit visuellement "la même note", juste agrandie. */
+const sheet = document.getElementById("notePopupSheet");
+sheet.className = `note-sheet fade-in ${data.color || "bg-pink-100"}`;
+
 document.getElementById("notePopup").classList.remove("hidden");
 document.getElementById("notePopup").classList.add("flex");
+document.getElementById("popupContent").focus();
 });
 }
+
+document.addEventListener("keydown", (e) => {
+if (e.key === "Escape" && !document.getElementById("notePopup").classList.contains("hidden")) {
+closePopup();
+}
+});
 
 /* SAVE */
 function saveNote(){

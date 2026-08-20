@@ -95,7 +95,13 @@
   font-weight: 700;
 }
 .object-label span:first-child { color: var(--c-c9749a); }
-.object-label button {
+.object-label-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.object-label button,
+.object-label a {
   border: 0;
   background: transparent;
   color: hsl(var(--brand-h) 61% 22% / .45);
@@ -105,10 +111,12 @@
   cursor: pointer;
   transition: color .18s ease;
 }
-.object-label button:hover { color: var(--c-db2777); }
+.object-label button:hover,
+.object-label a:hover { color: var(--c-db2777); }
 .object-label.light-label { color: hsl(var(--brand-h) 100% 97% / .7); }
 .object-label.light-label span:first-child { color: var(--classeur-ring); }
-.object-label.light-label button { color: hsl(var(--brand-h) 100% 97% / .75); }
+.object-label.light-label button,
+.object-label.light-label a { color: hsl(var(--brand-h) 100% 97% / .75); }
 
 .object-add {
   display: flex;

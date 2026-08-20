@@ -116,6 +116,7 @@ def get_note(request, note_id):
             "title": note.title,
             "content": note.content,
             "is_pinned": note.is_pinned,
+            "color": note.color,
         })
 
     except Note.DoesNotExist:

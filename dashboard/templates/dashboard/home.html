@@ -33,9 +33,14 @@
       <div class="object-label">
         <span>01</span>
         <span>Mes pense-bêtes</span>
-        <button type="button" onclick="openNoteCreate()" aria-label="Ajouter une note">
-          {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
-        </button>
+        <span class="object-label-actions">
+          <button type="button" onclick="openNoteCreate()" aria-label="Ajouter une note">
+            {% include "partials/icon.html" with name="plus" cls="w-4 h-4" %}
+          </button>
+          <a href="/notes/" aria-label="Ouvrir le bloc-notes">
+            {% include "partials/icon.html" with name="arrow-right" cls="w-4 h-4" %}
+          </a>
+        </span>
       </div>
       <div class="notes-paper">
         <div class="paper-title-row">
@@ -148,9 +153,14 @@
       <div class="object-label light-label">
         <span>04</span>
         <span>Ma séance</span>
-        <button type="button" onclick="EvapTimer.reset()" aria-label="Réinitialiser">
-          {% include "partials/icon.html" with name="x" cls="w-3.5 h-3.5" %}
-        </button>
+        <span class="object-label-actions">
+          <button type="button" onclick="EvapTimer.reset()" aria-label="Réinitialiser">
+            {% include "partials/icon.html" with name="x" cls="w-3.5 h-3.5" %}
+          </button>
+          <a href="/timer/" aria-label="Ouvrir le timer">
+            {% include "partials/icon.html" with name="arrow-right" cls="w-3.5 h-3.5" %}
+          </a>
+        </span>
       </div>
       <div class="timer-inner">
         <div class="timer-tabs">
